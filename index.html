@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Ogbonnaya Onu Polytechnic | Online Examination</title>
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <main class="auth-container">
+
+        <section class="auth-card">
+
+            <div class="school-header">
+                <h1>Ogbonnaya Onu Polytechnic</h1>
+                <p>Online Examination Portal</p>
+            </div>
+
+            <div class="form-header">
+                <h2>Student Authentication</h2>
+                <p>Enter your examination credentials to continue.</p>
+            </div>
+
+            <form id="authForm">
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input
+                        type="email"
+                        id="email"
+                        placeholder="student@example.com"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="regNumber">Registration Number</label>
+                    <input
+                        type="text"
+                        id="regNumber"
+                        placeholder="Enter registration number"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="department">Department</label>
+
+                    <select id="department" required>
+                        <option value="">Select department</option>
+                        <option value="Computer Science">
+                            Computer Science
+                        </option>
+                        <option value="Computer Engineering">
+                            Computer Engineering
+                        </option>
+                        <option value="Business Administration">
+                            Business Administration
+                        </option>
+                        <option value="Public Administration">
+                            Public Administration
+                        </option>
+                        <option value="Science Laboratory Technology">
+                            Science Laboratory Technology
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="examCode">Examination Code</label>
+
+                    <input
+                        type="text"
+                        id="examCode"
+                        placeholder="Enter examination code"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="primary-btn">
+                    Continue to Examination
+                </button>
+
+                <p id="authMessage" class="message"></p>
+
+            </form>
+
+        </section>
+
+    </main>
+
+    <script src="js/auth.js"></script>
+
+</body>
+</html>

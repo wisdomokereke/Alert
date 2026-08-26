@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Examination Result</title>
+
+    <link
+        rel="stylesheet"
+        href="css/style.css"
+    >
+
+</head>
+
+<body>
+
+    <main class="auth-container">
+
+        <section class="auth-card">
+
+            <div class="school-header">
+
+                <h1>
+                    Ogbonnaya Onu Polytechnic
+                </h1>
+
+                <p>
+                    Examination Submitted
+                </p>
+
+            </div>
+
+
+            <div class="form-header">
+
+                <h2>Your Result</h2>
+
+                <p id="result"></p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <script>
+
+        const score =
+            localStorage.getItem("examScore");
+
+        document.getElementById("result")
+            .textContent =
+            `You scored ${score} out of 3.`;
+
+    </script>
+
+</body>
+
+</html>

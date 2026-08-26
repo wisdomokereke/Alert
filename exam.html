@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Online Examination</title>
+
+    <link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+
+    <header class="exam-header">
+
+        <div>
+            <h1>Ogbonnaya Onu Polytechnic</h1>
+            <p>Online Examination</p>
+        </div>
+
+        <div class="timer">
+            Time Left:
+            <span id="timer">30:00</span>
+        </div>
+
+    </header>
+
+
+    <main class="exam-container">
+
+        <section class="exam-info">
+
+            <div>
+                <strong>Student:</strong>
+
+                <span id="studentName">
+                    Student
+                </span>
+            </div>
+
+            <div>
+                <strong>Course:</strong>
+
+                <span>English</span>
+            </div>
+
+        </section>
+
+
+        <section id="questionContainer">
+
+        </section>
+
+
+        <button
+            id="submitExam"
+            class="primary-btn"
+        >
+            Submit Examination
+        </button>
+
+    </main>
+
+
+    <script src="js/questions.js"></script>
+    <script src="js/exam.js"></script>
+
+</body>
+
+</html>

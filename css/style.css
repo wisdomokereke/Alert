@@ -1,0 +1,213 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    color: #17202a;
+}
+
+.auth-container {
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 480px;
+
+    background: white;
+
+    padding: 40px;
+
+    border-radius: 12px;
+
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.school-header {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+.school-header h1 {
+    font-size: 25px;
+    margin-bottom: 8px;
+}
+
+.school-header p {
+    color: #667085;
+}
+
+.form-header {
+    margin-bottom: 25px;
+}
+
+.form-header h2 {
+    font-size: 21px;
+    margin-bottom: 6px;
+}
+
+.form-header p {
+    color: #667085;
+    font-size: 14px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+
+    padding: 13px 14px;
+
+    border: 1px solid #d0d5dd;
+
+    border-radius: 7px;
+
+    font-size: 15px;
+
+    outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #2563eb;
+}
+
+.primary-btn {
+    width: 100%;
+
+    padding: 14px;
+
+    border: none;
+    border-radius: 7px;
+
+    background: #2563eb;
+    color: white;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.primary-btn:hover {
+    background: #1d4ed8;
+}
+
+.message {
+    text-align: center;
+
+    margin-top: 15px;
+
+    font-size: 14px;
+}
+
+.exam-header {
+    background: white;
+
+    padding: 20px 40px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    border-bottom: 1px solid #e4e7ec;
+}
+
+.exam-header h1 {
+    font-size: 20px;
+}
+
+.exam-header p {
+    color: #667085;
+    margin-top: 5px;
+}
+
+.timer {
+    background: #fff3cd;
+
+    padding: 10px 15px;
+
+    border-radius: 7px;
+
+    font-weight: 600;
+}
+
+.exam-container {
+    max-width: 850px;
+
+    margin: 30px auto;
+
+    padding: 20px;
+}
+
+.exam-info {
+    background: white;
+
+    padding: 20px;
+
+    border-radius: 10px;
+
+    margin-bottom: 25px;
+
+    display: flex;
+
+    justify-content: space-between;
+}
+
+.question-card {
+    background: white;
+
+    padding: 25px;
+
+    margin-bottom: 20px;
+
+    border-radius: 10px;
+
+    border: 1px solid #e4e7ec;
+}
+
+.question-number {
+    font-weight: 700;
+
+    margin-bottom: 12px;
+}
+
+.option {
+    display: block;
+
+    padding: 12px;
+
+    margin-top: 8px;
+
+    border: 1px solid #e4e7ec;
+
+    border-radius: 7px;
+
+    cursor: pointer;
+}
+
+.option:hover {
+    background: #f8fafc;
+}
