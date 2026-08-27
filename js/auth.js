@@ -1,64 +1,135 @@
 const authForm = document.getElementById("authForm");
 const authMessage = document.getElementById("authMessage");
 
-const students = [
-    {
-        email: "student1@example.com",
-        registrationNumber: "OOP/CS/001",
-        department: "Computer Science",
-        examCode: "OOP2026"
-    },
+const loginButton = document.getElementById("loginButton");
+const loginButtonText = document.getElementById("loginButtonText");
+const loginSpinner = document.getElementById("loginSpinner");
 
-    {
-        email: "student2@example.com",
-        registrationNumber: "OOP/CS/002",
-        department: "Computer Science",
-        examCode: "OOP2026"
-    }
-];
+const passwordInput = document.getElementById("password");
+const togglePassword = document.getElementById("togglePassword");
 
-authForm.addEventListener("submit", function (event) {
+// ========================================
+// MESSAGE HANDLER
+// ========================================
 
-    event.preventDefault();
+function showMessage(message, type = "error") {
+  authMessage.textContent = message;
 
-    const email =
-        document.getElementById("email").value.trim();
+  authMessage.className = `message ${type}`;
+}
 
-    const registrationNumber =
-        document.getElementById("regNumber").value.trim();
+// ========================================
+// LOADING STATE
+// ========================================
 
-    const department =
-        document.getElementById("department").value;
+function setLoading(isLoading) {
+  loginButton.disabled = isLoading;
 
-    const examCode =
-        document.getElementById("examCode").value.trim();
+  if (isLoading) {
+    loginButtonText.textContent = "Signing in...";
+    loginSpinner.hidden = false;
+  } else {
+    loginButtonText.textContent = "Sign In";
+    loginSpinner.hidden = true;
+  }
+}
 
-    const student = students.find(function (student) {
+// ========================================
+// PASSWORD VISIBILITY
+// ========================================
 
-        return (
-            student.email === email &&
-            student.registrationNumber === registrationNumber &&
-            student.department === department &&
-            student.examCode === examCode
-        );
+togglePassword.addEventListener("click", function () {
+  if (passwordInput.type === "password") {
+    passwordInput.type = "text";
 
+    togglePassword.textContent = "Hide";
+  } else {
+    passwordInput.type = "password";
+
+    togglePassword.textContent = "Show";
+  }
+});
+
+// ========================================
+// LOGIN
+// ========================================
+
+authForm.addEventListener("submit", async function (event) {
+  event.preventDefault();
+
+  showMessage("");
+
+  const email = document.getElementById("email").value.trim().toLowerCase();
+
+  const password = passwordInput.value;
+
+  // Basic validation
+
+  if (!email || !password) {
+    showMessage("Please enter your email address and password.");
+
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    // ====================================
+    // SUPABASE AUTHENTICATION
+    // ====================================
+
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email: email,
+
+      password: password,
     });
 
-    if (student) {
+    // ====================================
+    // AUTHENTICATION ERROR
+    // ====================================
 
-        localStorage.setItem(
-            "student",
-            JSON.stringify(student)
-        );
+    if (error) {
+      console.error("Authentication error:", error.message);
 
-        window.location.href = "exam.html";
+      showMessage("Invalid email or password. Please check your credentials.");
 
-    } else {
+      setLoading(false);
 
-        authMessage.textContent =
-            "Invalid examination credentials.";
-
-        authMessage.style.color = "red";
+      return;
     }
 
+    // ====================================
+    // VERIFY USER
+    // ====================================
+
+    if (!data || !data.user) {
+      showMessage(
+        "Unable to establish your account session. Please try again.",
+      );
+
+      setLoading(false);
+
+      return;
+    }
+
+    console.log("Authentication successful:", data.user.email);
+
+    // ====================================
+    // SUCCESS
+    // ====================================
+
+    showMessage("Sign in successful. Preparing your examination...", "success");
+
+    // Give the message a moment to display
+
+    setTimeout(function () {
+      window.location.href = "verify.html";
+    }, 700);
+  } catch (error) {
+    console.error("Unexpected authentication error:", error);
+
+    showMessage("Something went wrong. Please try again.");
+
+    setLoading(false);
+  }
 });

@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Create Account | Ogbonnaya Onu Polytechnic</title>
+
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+
+  <body>
+    <main class="auth-container">
+      <section class="auth-card">
+        <!-- School Header -->
+
+        <div class="school-header">
+          <div class="school-logo">OOP</div>
+
+          <h1>Ogbonnaya Onu Polytechnic</h1>
+
+          <p>Online Examination Portal</p>
+        </div>
+
+        <!-- Form Header -->
+
+        <div class="form-header">
+          <span class="form-label"> STUDENT REGISTRATION </span>
+
+          <h2>Create your account</h2>
+
+          <p>
+            Register using the student information provided by your institution.
+          </p>
+        </div>
+
+        <!-- Signup Form -->
+
+        <form id="signupForm">
+          <!-- Full Name -->
+
+          <div class="form-group">
+            <label for="fullName"> Full Name </label>
+
+            <input
+              type="text"
+              id="fullName"
+              placeholder="Enter your full name"
+              autocomplete="name"
+              required
+            />
+          </div>
+
+          <!-- Email -->
+
+          <div class="form-group">
+            <label for="email"> Email Address </label>
+
+            <input
+              type="email"
+              id="email"
+              placeholder="Enter your email address"
+              autocomplete="email"
+              required
+            />
+          </div>
+
+          <!-- Registration Number -->
+
+          <div class="form-group">
+            <label for="regNumber"> Registration Number </label>
+
+            <input
+              type="text"
+              id="regNumber"
+              placeholder="e.g. OOP/CS/001"
+              autocomplete="off"
+              required
+            />
+          </div>
+
+          <!-- Department -->
+
+          <div class="form-group">
+            <label for="department"> Department </label>
+
+            <select id="department" required>
+              <option value="">Select Department</option>
+            </select>
+          </div>
+
+          <!-- Password -->
+
+          <div class="form-group">
+            <label for="password"> Password </label>
+
+            <input
+              type="password"
+              id="password"
+              placeholder="Create a password"
+              autocomplete="new-password"
+              minlength="6"
+              required
+            />
+          </div>
+
+          <!-- Confirm Password -->
+
+          <div class="form-group">
+            <label for="confirmPassword"> Confirm Password </label>
+
+            <input
+              type="password"
+              id="confirmPassword"
+              placeholder="Re-enter your password"
+              autocomplete="new-password"
+              minlength="6"
+              required
+            />
+          </div>
+
+          <!-- Signup Button -->
+
+          <button type="submit" class="primary-btn" id="signupButton">
+            <span id="signupButtonText"> Create Account </span>
+
+            <span id="signupSpinner" class="spinner" hidden></span>
+          </button>
+
+          <!-- Message -->
+
+          <div
+            id="signupMessage"
+            class="message"
+            role="alert"
+            aria-live="polite"
+          ></div>
+        </form>
+
+        <!-- Login Link -->
+
+        <div class="portal-note">
+          <p>
+            Already have an account?
+            <a href="index.html" class="auth-link"> Sign in </a>
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <!-- Supabase -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="js/config.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/signup.js"></script>
+  </body>
+</html>

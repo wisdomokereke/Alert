@@ -1,99 +1,105 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Ogbonnaya Onu Polytechnic | Online Examination</title>
 
-    <link rel="stylesheet" href="css/style.css">
-</head>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
 
-<body>
-
+  <body>
     <main class="auth-container">
+      <section class="auth-card">
+        <!-- School Branding -->
+        <div class="school-header">
+          <div class="school-logo">OOP</div>
 
-        <section class="auth-card">
+          <h1>Ogbonnaya Onu Polytechnic</h1>
+          <p>Online Examination Portal</p>
+        </div>
 
-            <div class="school-header">
-                <h1>Ogbonnaya Onu Polytechnic</h1>
-                <p>Online Examination Portal</p>
+        <!-- Login Header -->
+        <div class="form-header">
+          <span class="form-label">STUDENT PORTAL</span>
+
+          <h2>Sign in to continue</h2>
+
+          <p>Enter your account credentials to access your examination.</p>
+        </div>
+
+        <!-- Authentication Form -->
+        <form id="authForm">
+          <!-- Email -->
+          <div class="form-group">
+            <label for="email">Email Address</label>
+
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder="Enter your email address"
+              autocomplete="email"
+              required
+            />
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <div class="label-row">
+              <label for="password">Password</label>
+
+              <button type="button" id="togglePassword" class="password-toggle">
+                Show
+              </button>
             </div>
 
-            <div class="form-header">
-                <h2>Student Authentication</h2>
-                <p>Enter your examination credentials to continue.</p>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+
+          <!-- Login Button -->
+          <button type="submit" id="loginButton" class="primary-btn">
+            <span id="loginButtonText">Sign In</span>
+
+            <span id="loginSpinner" class="spinner" hidden></span>
+          </button>
+
+          <!-- Message -->
+          <div id="authMessage" class="message" role="alert" aria-live="polite">
+            <div class="signup-prompt">
+              <span>Don't have an account?</span>
+
+              <a href="signup.html" class="auth-link"> Create account </a>
             </div>
+          </div>
+        </form>
 
-            <form id="authForm">
+        <!-- Information -->
+        <div class="portal-note">
+          <strong>Examination Access</strong>
 
-                <div class="form-group">
-                    <label for="email">Email Address</label>
-                    <input
-                        type="email"
-                        id="email"
-                        placeholder="student@example.com"
-                        required
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label for="regNumber">Registration Number</label>
-                    <input
-                        type="text"
-                        id="regNumber"
-                        placeholder="Enter registration number"
-                        required
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label for="department">Department</label>
-
-                    <select id="department" required>
-                        <option value="">Select department</option>
-                        <option value="Computer Science">
-                            Computer Science
-                        </option>
-                        <option value="Computer Engineering">
-                            Computer Engineering
-                        </option>
-                        <option value="Business Administration">
-                            Business Administration
-                        </option>
-                        <option value="Public Administration">
-                            Public Administration
-                        </option>
-                        <option value="Science Laboratory Technology">
-                            Science Laboratory Technology
-                        </option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="examCode">Examination Code</label>
-
-                    <input
-                        type="text"
-                        id="examCode"
-                        placeholder="Enter examination code"
-                        required
-                    >
-                </div>
-
-                <button type="submit" class="primary-btn">
-                    Continue to Examination
-                </button>
-
-                <p id="authMessage" class="message"></p>
-
-            </form>
-
-        </section>
-
+          <p>
+            Your examination credentials are provided by the examination
+            administrator. If you are unable to sign in, contact your department
+            or examination officer.
+          </p>
+        </div>
+      </section>
     </main>
 
-    <script src="js/auth.js"></script>
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-</body>
+    <script src="js/config.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/auth.js"></script>
+  </body>
 </html>

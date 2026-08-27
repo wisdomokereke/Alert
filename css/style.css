@@ -1,213 +1,401 @@
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-    font-family: Arial, sans-serif;
-    background: #f4f6f8;
-    color: #17202a;
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+  color: #17202a;
 }
 
 .auth-container {
-    min-height: 100vh;
+  min-height: 100vh;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-    padding: 20px;
+  padding: 20px;
 }
 
 .auth-card {
-    width: 100%;
-    max-width: 480px;
+  width: 100%;
+  max-width: 480px;
 
-    background: white;
+  background: white;
 
-    padding: 40px;
+  padding: 40px;
 
-    border-radius: 12px;
+  border-radius: 12px;
 
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 
 .school-header {
-    text-align: center;
-    margin-bottom: 35px;
+  text-align: center;
+  margin-bottom: 35px;
 }
 
 .school-header h1 {
-    font-size: 25px;
-    margin-bottom: 8px;
+  font-size: 25px;
+  margin-bottom: 8px;
 }
 
 .school-header p {
-    color: #667085;
+  color: #667085;
 }
 
 .form-header {
-    margin-bottom: 25px;
+  margin-bottom: 25px;
 }
 
 .form-header h2 {
-    font-size: 21px;
-    margin-bottom: 6px;
+  font-size: 21px;
+  margin-bottom: 6px;
 }
 
 .form-header p {
-    color: #667085;
-    font-size: 14px;
+  color: #667085;
+  font-size: 14px;
 }
 
 .form-group {
-    margin-bottom: 20px;
+  margin-bottom: 20px;
 }
 
 .form-group label {
-    display: block;
+  display: block;
 
-    font-size: 14px;
-    font-weight: 600;
+  font-size: 14px;
+  font-weight: 600;
 
-    margin-bottom: 8px;
+  margin-bottom: 8px;
 }
 
 .form-group input,
 .form-group select {
-    width: 100%;
+  width: 100%;
 
-    padding: 13px 14px;
+  padding: 13px 14px;
 
-    border: 1px solid #d0d5dd;
+  border: 1px solid #d0d5dd;
 
-    border-radius: 7px;
+  border-radius: 7px;
 
-    font-size: 15px;
+  font-size: 15px;
 
-    outline: none;
+  outline: none;
 }
 
 .form-group input:focus,
 .form-group select:focus {
-    border-color: #2563eb;
+  border-color: #2563eb;
 }
 
 .primary-btn {
-    width: 100%;
+  width: 100%;
 
-    padding: 14px;
+  padding: 14px;
 
-    border: none;
-    border-radius: 7px;
+  border: none;
+  border-radius: 7px;
 
-    background: #2563eb;
-    color: white;
+  background: #2563eb;
+  color: white;
 
-    font-size: 15px;
-    font-weight: 600;
+  font-size: 15px;
+  font-weight: 600;
 
-    cursor: pointer;
+  cursor: pointer;
 }
 
 .primary-btn:hover {
-    background: #1d4ed8;
+  background: #1d4ed8;
 }
 
 .message {
-    text-align: center;
+  text-align: center;
 
-    margin-top: 15px;
+  margin-top: 15px;
 
-    font-size: 14px;
+  font-size: 14px;
 }
 
 .exam-header {
-    background: white;
+  background: white;
 
-    padding: 20px 40px;
+  padding: 20px 40px;
 
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
-    border-bottom: 1px solid #e4e7ec;
+  border-bottom: 1px solid #e4e7ec;
 }
 
 .exam-header h1 {
-    font-size: 20px;
+  font-size: 20px;
 }
 
 .exam-header p {
-    color: #667085;
-    margin-top: 5px;
+  color: #667085;
+  margin-top: 5px;
 }
 
 .timer {
-    background: #fff3cd;
+  background: #fff3cd;
 
-    padding: 10px 15px;
+  padding: 10px 15px;
 
-    border-radius: 7px;
+  border-radius: 7px;
 
-    font-weight: 600;
+  font-weight: 600;
 }
 
 .exam-container {
-    max-width: 850px;
+  max-width: 850px;
 
-    margin: 30px auto;
+  margin: 30px auto;
 
-    padding: 20px;
+  padding: 20px;
 }
 
 .exam-info {
-    background: white;
+  background: white;
 
-    padding: 20px;
+  padding: 20px;
 
-    border-radius: 10px;
+  border-radius: 10px;
 
-    margin-bottom: 25px;
+  margin-bottom: 25px;
 
-    display: flex;
+  display: flex;
 
-    justify-content: space-between;
+  justify-content: space-between;
 }
 
 .question-card {
-    background: white;
+  background: white;
 
-    padding: 25px;
+  padding: 25px;
 
-    margin-bottom: 20px;
+  margin-bottom: 20px;
 
-    border-radius: 10px;
+  border-radius: 10px;
 
-    border: 1px solid #e4e7ec;
+  border: 1px solid #e4e7ec;
 }
 
 .question-number {
-    font-weight: 700;
+  font-weight: 700;
 
-    margin-bottom: 12px;
+  margin-bottom: 12px;
 }
 
 .option {
-    display: block;
+  display: block;
 
-    padding: 12px;
+  padding: 12px;
 
-    margin-top: 8px;
+  margin-top: 8px;
 
-    border: 1px solid #e4e7ec;
+  border: 1px solid #e4e7ec;
 
-    border-radius: 7px;
+  border-radius: 7px;
 
-    cursor: pointer;
+  cursor: pointer;
 }
 
 .option:hover {
-    background: #f8fafc;
+  background: #f8fafc;
+}
+
+/* ========================================
+   AUTHENTICATION ENHANCEMENTS
+======================================== */
+
+.school-logo {
+  width: 58px;
+  height: 58px;
+
+  margin: 0 auto 15px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #2563eb;
+  color: white;
+
+  border-radius: 12px;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  letter-spacing: 1px;
+}
+
+.form-label {
+  display: inline-block;
+
+  margin-bottom: 10px;
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  letter-spacing: 1px;
+
+  color: #2563eb;
+}
+
+.label-row {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  margin-bottom: 8px;
+}
+
+.label-row label {
+  margin-bottom: 0;
+}
+
+.password-toggle {
+  border: none;
+
+  background: none;
+
+  color: #2563eb;
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  padding: 2px;
+}
+
+.password-toggle:hover {
+  text-decoration: underline;
+}
+
+.primary-btn {
+  position: relative;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 10px;
+}
+
+.primary-btn:disabled {
+  opacity: 0.7;
+
+  cursor: not-allowed;
+}
+
+.message {
+  min-height: 20px;
+
+  text-align: center;
+
+  margin-top: 15px;
+
+  font-size: 14px;
+
+  line-height: 1.5;
+}
+
+.message.error {
+  color: #dc2626;
+}
+
+.message.success {
+  color: #16a34a;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+
+  border: 2px solid rgba(255, 255, 255, 0.4);
+
+  border-top-color: white;
+
+  border-radius: 50%;
+
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.portal-note {
+  margin-top: 25px;
+
+  padding-top: 20px;
+
+  border-top: 1px solid #e4e7ec;
+
+  text-align: center;
+}
+
+.portal-note strong {
+  display: block;
+
+  margin-bottom: 6px;
+
+  font-size: 13px;
+}
+
+.portal-note p {
+  color: #667085;
+
+  font-size: 12px;
+
+  line-height: 1.6;
+}
+
+/* ========================================
+   SIGNUP / AUTH LINKS
+======================================== */
+
+.signup-prompt {
+  margin-top: 20px;
+
+  text-align: center;
+
+  font-size: 13px;
+
+  color: #667085;
+}
+
+.auth-link {
+  margin-left: 5px;
+
+  color: #2563eb;
+
+  font-weight: 600;
+
+  text-decoration: none;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
 }

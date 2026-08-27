@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Verify Examination | Ogbonnaya Onu Polytechnic</title>
+
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+
+  <body>
+    <main class="auth-container">
+      <section class="auth-card">
+        <div class="school-header">
+          <div class="school-logo">OOP</div>
+
+          <h1>Ogbonnaya Onu Polytechnic</h1>
+
+          <p>Online Examination Portal</p>
+        </div>
+
+        <div class="form-header">
+          <span class="form-label"> EXAMINATION VERIFICATION </span>
+
+          <h2>Verify your examination</h2>
+
+          <p>
+            Confirm your student information before accessing the examination.
+          </p>
+        </div>
+
+        <form id="verifyForm">
+          <!-- Registration Number -->
+
+          <div class="form-group">
+            <label for="regNumber"> Registration Number </label>
+
+            <input
+              type="text"
+              id="regNumber"
+              placeholder="e.g. OOP/CS/001"
+              autocomplete="off"
+              required
+            />
+          </div>
+
+          <!-- Department -->
+
+          <div class="form-group">
+            <label for="department"> Department </label>
+
+            <select id="department" required>
+              <option value="">Select Department</option>
+            </select>
+          </div>
+
+          <!-- Examination Code -->
+
+          <div class="form-group">
+            <label for="examCode"> Examination Code </label>
+
+            <input
+              type="text"
+              id="examCode"
+              placeholder="Enter examination code"
+              autocomplete="off"
+              required
+            />
+          </div>
+
+          <button type="submit" class="primary-btn" id="verifyButton">
+            <span id="verifyButtonText"> Continue </span>
+
+            <span id="verifySpinner" class="spinner" hidden></span>
+          </button>
+
+          <div
+            id="verifyMessage"
+            class="message"
+            role="alert"
+            aria-live="polite"
+          ></div>
+        </form>
+
+        <div class="portal-note">
+          <strong> Secure Examination Access </strong>
+
+          <p>
+            Your registration number, department and examination code must match
+            your registered student information.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="js/config.js"></script>
+
+    <script src="js/supabase.js"></script>
+
+    <script src="js/verify.js"></script>
+  </body>
+</html>

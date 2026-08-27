@@ -1,162 +1,371 @@
-const questionContainer =
-    document.getElementById("questionContainer");
+// ========================================
+// EXAM SYSTEM
+// ========================================
 
-const studentName =
-    document.getElementById("studentName");
+// ----------------------------------------
+// ELEMENTS
+// ----------------------------------------
 
-const student =
-    JSON.parse(localStorage.getItem("student"));
+const questionContainer = document.getElementById("questionContainer");
 
+const studentName = document.getElementById("studentName");
 
-// Prevent unauthorized access
+const courseName = document.getElementById("courseName");
 
-if (!student) {
+const submitButton = document.getElementById("submitExam");
 
-    window.location.href = "index.html";
+const timerElement = document.getElementById("timer");
 
-}
-
-
-// Display student information
-
-studentName.textContent =
-    student.registrationNumber;
-
-
-// Generate questions
-
-questions.forEach(function (question, index) {
-
-    const questionCard =
-        document.createElement("div");
-
-    questionCard.className =
-        "question-card";
-
-
-    const questionTitle =
-        document.createElement("p");
-
-    questionTitle.className =
-        "question-number";
-
-    questionTitle.textContent =
-        `${index + 1}. ${question.question}`;
-
-
-    questionCard.appendChild(questionTitle);
-
-
-    question.options.forEach(function (option, optionIndex) {
-
-        const label =
-            document.createElement("label");
-
-        label.className =
-            "option";
-
-
-        label.innerHTML = `
-
-            <input
-                type="radio"
-                name="question-${index}"
-                value="${optionIndex}"
-            >
-
-            ${option}
-
-        `;
-
-
-        questionCard.appendChild(label);
-
-    });
-
-
-    questionContainer.appendChild(questionCard);
-
-});
+// ----------------------------------------
+// VARIABLES
+// ----------------------------------------
 
 let timeLeft = 30 * 60;
 
-const timer =
-    document.getElementById("timer");
+let countdown = null;
 
+let examSubmitted = false;
 
-const countdown =
-    setInterval(function () {
+// ========================================
+// INITIALIZE EXAM
+// ========================================
 
-        const minutes =
-            Math.floor(timeLeft / 60);
+async function initializeExam() {
+  console.log("Initializing examination...");
 
-        const seconds =
-            timeLeft % 60;
+  // ------------------------------------
+  // CHECK SUPABASE SESSION
+  // ------------------------------------
 
+  const { data: sessionData, error: sessionError } =
+    await supabaseClient.auth.getSession();
 
-        timer.textContent =
-            `${minutes}:${seconds
-                .toString()
-                .padStart(2, "0")}`;
+  if (sessionError) {
+    console.error("Session error:", sessionError);
 
+    redirectToLogin();
 
-        timeLeft--;
+    return;
+  }
 
+  const session = sessionData.session;
 
-        if (timeLeft < 0) {
+  // ------------------------------------
+  // NO SESSION
+  // ------------------------------------
 
-            clearInterval(countdown);
+  if (!session) {
+    console.error("No authenticated Supabase session found.");
 
-            submitExam();
+    redirectToLogin();
 
-        }
+    return;
+  }
 
-    }, 1000);
+  console.log("Authenticated user:", session.user.email);
 
-    const submitButton =
-    document.getElementById("submitExam");
+  // ------------------------------------
+  // GET STUDENT
+  // ------------------------------------
 
+  const { data: student, error: studentError } = await supabaseClient
+    .from("students")
+    .select(
+      `
+            id,
+            full_name,
+            email,
+            registration_number,
+            department_id
+        `,
+    )
+    .eq("auth_user_id", session.user.id)
+    .maybeSingle();
 
-submitButton.addEventListener(
-    "click",
-    submitExam
-);
+  // ------------------------------------
+  // STUDENT ERROR
+  // ------------------------------------
 
+  if (studentError) {
+    console.error("Student lookup failed:", studentError);
 
-function submitExam() {
+    questionContainer.innerHTML = `
+            <div class="question-card">
 
-    clearInterval(countdown);
+                <p>
+                    Unable to load your student
+                    information.
+                </p>
 
-    let score = 0;
+            </div>
+        `;
 
+    return;
+  }
 
-    questions.forEach(function (question, index) {
+  // ------------------------------------
+  // STUDENT NOT FOUND
+  // ------------------------------------
 
-        const selected =
-            document.querySelector(
-                `input[name="question-${index}"]:checked`
-            );
+  if (!student) {
+    console.error("No student record is linked to this account.");
 
+    questionContainer.innerHTML = `
+            <div class="question-card">
 
-        if (
-            selected &&
-            Number(selected.value) === question.answer
-        ) {
+                <p>
+                    Your student account could not
+                    be verified.
+                </p>
 
-            score++;
+            </div>
+        `;
 
-        }
+    return;
+  }
 
+  console.log("Student loaded:", student);
+
+  // ------------------------------------
+  // DISPLAY STUDENT
+  // ------------------------------------
+
+  studentName.textContent =
+    student.full_name || student.registration_number || "Student";
+
+  // ------------------------------------
+  // DISPLAY COURSE
+  // ------------------------------------
+
+  courseName.textContent = "English";
+
+  // ------------------------------------
+  // LOAD QUESTIONS
+  // ------------------------------------
+
+  loadQuestions();
+
+  // ------------------------------------
+  // START TIMER
+  // ------------------------------------
+
+  startTimer();
+}
+
+// ========================================
+// LOAD QUESTIONS
+// ========================================
+
+function loadQuestions() {
+  // ------------------------------------
+  // CHECK QUESTIONS VARIABLE
+  // ------------------------------------
+
+  if (typeof questions === "undefined") {
+    console.error("questions.js was not loaded.");
+
+    questionContainer.innerHTML = `
+            <div class="question-card">
+
+                <p>
+                    Examination questions could
+                    not be loaded.
+                </p>
+
+            </div>
+        `;
+
+    submitButton.disabled = true;
+
+    return;
+  }
+
+  // ------------------------------------
+  // CHECK ARRAY
+  // ------------------------------------
+
+  if (!Array.isArray(questions) || questions.length === 0) {
+    console.error("No examination questions found.");
+
+    questionContainer.innerHTML = `
+            <div class="question-card">
+
+                <p>
+                    No examination questions
+                    are available.
+                </p>
+
+            </div>
+        `;
+
+    submitButton.disabled = true;
+
+    return;
+  }
+
+  // ------------------------------------
+  // CLEAR LOADING MESSAGE
+  // ------------------------------------
+
+  questionContainer.innerHTML = "";
+
+  // ------------------------------------
+  // CREATE QUESTIONS
+  // ------------------------------------
+
+  questions.forEach(function (question, index) {
+    const questionCard = document.createElement("div");
+
+    questionCard.className = "question-card";
+
+    // ----------------------------
+    // QUESTION
+    // ----------------------------
+
+    const questionTitle = document.createElement("p");
+
+    questionTitle.className = "question-number";
+
+    questionTitle.textContent = `${index + 1}. ${question.question}`;
+
+    questionCard.appendChild(questionTitle);
+
+    // ----------------------------
+    // OPTIONS
+    // ----------------------------
+
+    question.options.forEach(function (option, optionIndex) {
+      const label = document.createElement("label");
+
+      label.className = "option";
+
+      const input = document.createElement("input");
+
+      input.type = "radio";
+
+      input.name = `question-${index}`;
+
+      input.value = optionIndex;
+
+      const text = document.createElement("span");
+
+      text.textContent = option;
+
+      label.appendChild(input);
+
+      label.appendChild(text);
+
+      questionCard.appendChild(label);
     });
 
+    questionContainer.appendChild(questionCard);
+  });
 
-    localStorage.setItem(
-        "examScore",
-        score
+  console.log(`${questions.length} questions loaded.`);
+}
+
+// ========================================
+// TIMER
+// ========================================
+
+function startTimer() {
+  updateTimer();
+
+  countdown = setInterval(function () {
+    timeLeft--;
+
+    updateTimer();
+
+    // ------------------------
+    // TIME EXPIRED
+    // ------------------------
+
+    if (timeLeft <= 0) {
+      clearInterval(countdown);
+
+      submitExam();
+    }
+  }, 1000);
+}
+
+// ========================================
+// UPDATE TIMER
+// ========================================
+
+function updateTimer() {
+  const minutes = Math.floor(timeLeft / 60);
+
+  const seconds = timeLeft % 60;
+
+  timerElement.textContent = `${minutes}:${seconds
+    .toString()
+    .padStart(2, "0")}`;
+}
+
+// ========================================
+// SUBMIT BUTTON
+// ========================================
+
+submitButton.addEventListener("click", submitExam);
+
+// ========================================
+// SUBMIT EXAM
+// ========================================
+
+function submitExam() {
+  // Prevent double submission
+
+  if (examSubmitted) {
+    return;
+  }
+
+  examSubmitted = true;
+
+  // Stop timer
+
+  if (countdown) {
+    clearInterval(countdown);
+  }
+
+  // ------------------------------------
+  // CALCULATE SCORE
+  // ------------------------------------
+
+  let score = 0;
+
+  questions.forEach(function (question, index) {
+    const selected = document.querySelector(
+      `input[name="question-${index}"]:checked`,
     );
 
+    if (selected && Number(selected.value) === question.answer) {
+      score++;
+    }
+  });
 
-    window.location.href =
-        "result.html";
+  // ------------------------------------
+  // STORE SCORE
+  // ------------------------------------
 
+  localStorage.setItem("examScore", score);
+
+  // ------------------------------------
+  // GO TO RESULT
+  // ------------------------------------
+
+  window.location.href = "result.html";
 }
+
+// ========================================
+// REDIRECT TO LOGIN
+// ========================================
+
+function redirectToLogin() {
+  window.location.href = "index.html";
+}
+
+// ========================================
+// START APPLICATION
+// ========================================
+
+initializeExam();

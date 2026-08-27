@@ -1,77 +1,90 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
 
-<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <meta charset="UTF-8">
+    <title>Online Examination | Ogbonnaya Onu Polytechnic</title>
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
 
-    <title>Online Examination</title>
-
-    <link rel="stylesheet" href="css/style.css">
-
-</head>
-
-<body>
+  <body>
+    <!-- ========================================
+         EXAM HEADER
+    ========================================= -->
 
     <header class="exam-header">
+      <div>
+        <h1>Ogbonnaya Onu Polytechnic</h1>
 
-        <div>
-            <h1>Ogbonnaya Onu Polytechnic</h1>
-            <p>Online Examination</p>
-        </div>
+        <p>Online Examination</p>
+      </div>
 
-        <div class="timer">
-            Time Left:
-            <span id="timer">30:00</span>
-        </div>
+      <div class="timer">
+        Time Left:
 
+        <span id="timer"> 30:00 </span>
+      </div>
     </header>
 
+    <!-- ========================================
+         EXAM CONTENT
+    ========================================= -->
 
     <main class="exam-container">
+      <!-- Exam Information -->
 
-        <section class="exam-info">
+      <section class="exam-info">
+        <div>
+          <strong> Student: </strong>
 
-            <div>
-                <strong>Student:</strong>
+          <span id="studentName"> Loading... </span>
+        </div>
 
-                <span id="studentName">
-                    Student
-                </span>
-            </div>
+        <div>
+          <strong> Course: </strong>
 
-            <div>
-                <strong>Course:</strong>
+          <span id="courseName"> English </span>
+        </div>
+      </section>
 
-                <span>English</span>
-            </div>
+      <!-- Questions -->
 
-        </section>
+      <section id="questionContainer">
+        <div class="question-card">
+          <p>Loading examination questions...</p>
+        </div>
+      </section>
 
+      <!-- Submit -->
 
-        <section id="questionContainer">
-
-        </section>
-
-
-        <button
-            id="submitExam"
-            class="primary-btn"
-        >
-            Submit Examination
-        </button>
-
+      <button id="submitExam" class="primary-btn" type="button">
+        Submit Examination
+      </button>
     </main>
 
+    <!-- ========================================
+         SUPABASE
+    ========================================= -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="js/config.js"></script>
+
+    <script src="js/supabase.js"></script>
+
+    <!-- ========================================
+         CURRENT PROTOTYPE QUESTIONS
+    ========================================= -->
 
     <script src="js/questions.js"></script>
+
+    <!-- ========================================
+         EXAM LOGIC
+    ========================================= -->
+
     <script src="js/exam.js"></script>
-
-</body>
-
+  </body>
 </html>
