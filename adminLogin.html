@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Administrator Login | Ogbonnaya Onu Polytechnic</title>
+
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+
+  <body>
+    <main class="auth-container">
+      <section class="auth-card">
+        <div class="school-header">
+          <h1>Ogbonnaya Onu Polytechnic</h1>
+
+          <p>Online Examination Monitoring System</p>
+        </div>
+
+        <div class="form-header">
+          <h2>Administrator Login</h2>
+
+          <p>Sign in to access the examination monitoring dashboard.</p>
+        </div>
+
+        <form id="adminLoginForm">
+          <div class="form-group">
+            <label for="adminEmail"> Email Address </label>
+
+            <input
+              type="email"
+              id="adminEmail"
+              placeholder="Enter administrator email"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="adminPassword"> Password </label>
+
+            <input
+              type="password"
+              id="adminPassword"
+              placeholder="Enter your password"
+              required
+            />
+          </div>
+
+          <button type="submit" class="primary-btn">
+            Sign In as Administrator
+          </button>
+
+          <p id="adminMessage" class="message"></p>
+        </form>
+
+        <div class="admin-footer">
+          <p>Authorized administrators only.</p>
+
+          <a href="index.html"> Go to Student Portal </a>
+        </div>
+      </section>
+    </main>
+
+    <!-- SUPABASE -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="js/config.js"></script>
+
+    <script src="js/supabase.js"></script>
+
+    <script src="js/admin-login.js"></script>
+  </body>
+</html>

@@ -1,5 +1,10 @@
 // ========================================
-// EXAM SYSTEM
+// ONLINE EXAMINATION SYSTEM
+// Ogbonnaya Onu Polytechnic
+// ========================================
+
+// ========================================
+// PAGE ELEMENTS
 // ========================================
 
 const questionContainer = document.getElementById("questionContainer");
@@ -13,7 +18,7 @@ const submitButton = document.getElementById("submitExam");
 const timerElement = document.getElementById("timer");
 
 // ========================================
-// VARIABLES
+// EXAM VARIABLES
 // ========================================
 
 let timeLeft = 30 * 60;
@@ -24,6 +29,12 @@ let examSubmitted = false;
 
 let examQuestions = [];
 
+let currentStudent = null;
+
+let currentCourse = null;
+
+let currentAttempt = null;
+
 // ========================================
 // INITIALIZE EXAM
 // ========================================
@@ -31,9 +42,9 @@ let examQuestions = [];
 async function initializeExam() {
   console.log("Initializing examination...");
 
-  // ----------------------------------------
+  // ------------------------------------
   // CHECK SUPABASE SESSION
-  // ----------------------------------------
+  // ------------------------------------
 
   const { data: sessionData, error: sessionError } =
     await supabaseClient.auth.getSession();
@@ -48,9 +59,9 @@ async function initializeExam() {
 
   const session = sessionData.session;
 
-  // ----------------------------------------
+  // ------------------------------------
   // CHECK AUTHENTICATION
-  // ----------------------------------------
+  // ------------------------------------
 
   if (!session) {
     console.error("No authenticated session found.");
@@ -62,20 +73,20 @@ async function initializeExam() {
 
   console.log("Authenticated user:", session.user.email);
 
-  // ----------------------------------------
-  // GET STUDENT
-  // ----------------------------------------
+  // ------------------------------------
+  // LOAD STUDENT
+  // ------------------------------------
 
   const { data: student, error: studentError } = await supabaseClient
     .from("students")
     .select(
       `
-            id,
-            full_name,
-            email,
-            registration_number,
-            department_id
-        `,
+                id,
+                full_name,
+                email,
+                registration_number,
+                department_id
+            `,
     )
     .eq("auth_user_id", session.user.id)
     .maybeSingle();
@@ -96,51 +107,95 @@ async function initializeExam() {
     return;
   }
 
+  currentStudent = student;
+
   console.log("Student loaded:", student);
 
-  // ----------------------------------------
+  // ------------------------------------
   // DISPLAY STUDENT
-  // ----------------------------------------
+  // ------------------------------------
 
   studentName.textContent =
     student.full_name || student.registration_number || "Student";
 
-  // ----------------------------------------
-  // LOAD ENGLISH QUESTIONS
-  // ----------------------------------------
+  // ------------------------------------
+  // LOAD ENGLISH COURSE
+  // ------------------------------------
+
+  const { data: course, error: courseError } = await supabaseClient
+    .from("courses")
+    .select(
+      `
+                id,
+                name,
+                code
+            `,
+    )
+    .eq("code", "ENG")
+    .maybeSingle();
+
+  if (courseError) {
+    console.error("Course lookup failed:", courseError);
+
+    showError("Unable to load the examination course.");
+
+    return;
+  }
+
+  if (!course) {
+    console.error("English course was not found.");
+
+    showError("English examination could not be found.");
+
+    return;
+  }
+
+  currentCourse = course;
+
+  courseName.textContent = course.name;
+
+  console.log("Course loaded:", course);
+
+  // ------------------------------------
+  // LOAD QUESTIONS
+  // ------------------------------------
 
   await loadExamQuestions();
 
-  // ----------------------------------------
-  // START TIMER
-  // ----------------------------------------
+  // ------------------------------------
+  // START TIMER ONLY IF QUESTIONS EXIST
+  // ------------------------------------
 
-  if (examQuestions.length > 0) {
+  if (examQuestions.length === 20) {
     startTimer();
   }
 }
 
 // ========================================
-// LOAD EXAM QUESTIONS FROM SUPABASE
+// LOAD QUESTIONS FROM SUPABASE
 // ========================================
 
 async function loadExamQuestions() {
   console.log("Loading questions from Supabase...");
 
-  const { data, error } = await supabaseClient.from("questions").select(`
-            id,
-            course_id,
-            question_text,
-            option_a,
-            option_b,
-            option_c,
-            option_d,
-            correct_answer
-        `);
+  const { data, error } = await supabaseClient
+    .from("questions")
+    .select(
+      `
+                id,
+                course_id,
+                question_text,
+                option_a,
+                option_b,
+                option_c,
+                option_d
+            `,
+    )
+    .eq("course_id", currentCourse.id);
 
-  // ----------------------------------------
+  // ------------------------------------
   // DATABASE ERROR
-  // ----------------------------------------
+  // ------------------------------------
 
   if (error) {
     console.error("Question loading failed:", error);
@@ -150,9 +205,9 @@ async function loadExamQuestions() {
     return;
   }
 
-  // ----------------------------------------
+  // ------------------------------------
   // NO QUESTIONS
-  // ----------------------------------------
+  // ------------------------------------
 
   if (!data || data.length === 0) {
     console.error("Supabase returned no questions.");
@@ -162,25 +217,33 @@ async function loadExamQuestions() {
     return;
   }
 
-  console.log(`Supabase returned ${data.length} questions.`);
+  console.log(`Supabase returned ${data.length} English questions.`);
 
-  // ----------------------------------------
-  // SELECT 20 QUESTIONS
-  // ----------------------------------------
+  // ------------------------------------
+  // MAKE SURE WE HAVE 20 QUESTIONS
+  // ------------------------------------
+
+  if (data.length < 20) {
+    console.error(`Only ${data.length} English questions were found.`);
+
+    showError(
+      "There are not enough English questions available for this examination.",
+    );
+
+    return;
+  }
+
+  // ------------------------------------
+  // RANDOMLY SELECT 20
+  // ------------------------------------
 
   examQuestions = shuffleArray(data).slice(0, 20);
 
   console.log("Selected 20 examination questions:", examQuestions);
 
-  // ----------------------------------------
-  // DISPLAY COURSE
-  // ----------------------------------------
-
-  courseName.textContent = "English";
-
-  // ----------------------------------------
+  // ------------------------------------
   // DISPLAY QUESTIONS
-  // ----------------------------------------
+  // ------------------------------------
 
   displayQuestions();
 }
@@ -193,12 +256,16 @@ function displayQuestions() {
   questionContainer.innerHTML = "";
 
   examQuestions.forEach(function (question, index) {
+    // --------------------------------
+    // QUESTION CARD
+    // --------------------------------
+
     const questionCard = document.createElement("div");
 
     questionCard.className = "question-card";
 
     // --------------------------------
-    // QUESTION NUMBER + TEXT
+    // QUESTION NUMBER
     // --------------------------------
 
     const questionTitle = document.createElement("p");
@@ -214,13 +281,28 @@ function displayQuestions() {
     // --------------------------------
 
     const options = [
-      question.option_a,
-      question.option_b,
-      question.option_c,
-      question.option_d,
+      {
+        letter: "A",
+        text: question.option_a,
+      },
+
+      {
+        letter: "B",
+        text: question.option_b,
+      },
+
+      {
+        letter: "C",
+        text: question.option_c,
+      },
+
+      {
+        letter: "D",
+        text: question.option_d,
+      },
     ];
 
-    options.forEach(function (option, optionIndex) {
+    options.forEach(function (option) {
       const label = document.createElement("label");
 
       label.className = "option";
@@ -231,11 +313,11 @@ function displayQuestions() {
 
       input.name = `question-${question.id}`;
 
-      input.value = String.fromCharCode(65 + optionIndex);
+      input.value = option.letter;
 
       const text = document.createElement("span");
 
-      text.textContent = option;
+      text.textContent = option.text;
 
       label.appendChild(input);
 
@@ -247,7 +329,7 @@ function displayQuestions() {
     questionContainer.appendChild(questionCard);
   });
 
-  console.log("Questions displayed successfully.");
+  console.log("20 questions displayed successfully.");
 }
 
 // ========================================
@@ -267,26 +349,6 @@ function shuffleArray(array) {
 }
 
 // ========================================
-// ERROR DISPLAY
-// ========================================
-
-function showError(message) {
-  questionContainer.innerHTML = `
-
-        <div class="question-card">
-
-            <p>
-                ${message}
-            </p>
-
-        </div>
-
-    `;
-
-  submitButton.disabled = true;
-}
-
-// ========================================
 // TIMER
 // ========================================
 
@@ -298,10 +360,14 @@ function startTimer() {
 
     updateTimer();
 
+    // ----------------------------
+    // TIME EXPIRED
+    // ----------------------------
+
     if (timeLeft <= 0) {
       clearInterval(countdown);
 
-      submitExam();
+      submitExam(true);
     }
   }, 1000);
 }
@@ -324,49 +390,121 @@ function updateTimer() {
 // SUBMIT BUTTON
 // ========================================
 
-submitButton.addEventListener("click", submitExam);
+submitButton.addEventListener("click", function () {
+  submitExam(false);
+});
 
 // ========================================
-// SUBMIT EXAM
+// COLLECT STUDENT ANSWERS
 // ========================================
 
-function submitExam() {
-  if (examSubmitted) {
-    return;
-  }
-
-  examSubmitted = true;
-
-  if (countdown) {
-    clearInterval(countdown);
-  }
-
-  let score = 0;
+function collectAnswers() {
+  const answers = [];
 
   examQuestions.forEach(function (question) {
     const selected = document.querySelector(
       `input[name="question-${question.id}"]:checked`,
     );
 
-    if (
-      selected &&
-      selected.value.toUpperCase() === question.correct_answer.toUpperCase()
-    ) {
-      score++;
-    }
+    answers.push({
+      question_id: question.id,
+
+      selected_answer: selected ? selected.value : null,
+    });
   });
 
-  console.log(`Exam submitted. Score: ${score}/${examQuestions.length}`);
+  return answers;
+}
 
-  // ----------------------------------------
-  // TEMPORARY RESULT STORAGE
-  // ----------------------------------------
+// ========================================
+// SUBMIT EXAM
+// ========================================
 
-  localStorage.setItem("examScore", score);
+async function submitExam(automaticSubmission = false) {
+  // ------------------------------------
+  // PREVENT DOUBLE SUBMISSION
+  // ------------------------------------
 
-  localStorage.setItem("examTotal", examQuestions.length);
+  if (examSubmitted) {
+    return;
+  }
 
-  window.location.href = "result.html";
+  examSubmitted = true;
+
+  // ------------------------------------
+  // STOP TIMER
+  // ------------------------------------
+
+  if (countdown) {
+    clearInterval(countdown);
+  }
+
+  // ------------------------------------
+  // DISABLE SUBMIT BUTTON
+  // ------------------------------------
+
+  submitButton.disabled = true;
+
+  submitButton.textContent = "Submitting...";
+
+  console.log(
+    automaticSubmission
+      ? "Time expired. Submitting examination..."
+      : "Submitting examination...",
+  );
+
+  // ------------------------------------
+  // COLLECT ANSWERS
+  // ------------------------------------
+
+  const answers = collectAnswers();
+
+  console.log("Collected answers:", answers);
+
+  // ------------------------------------
+  // TEMPORARY STORAGE
+  //
+  // We do NOT store the score here.
+  // We only keep the student's responses
+  // temporarily until the secure database
+  // submission process is completed.
+  // ------------------------------------
+
+  localStorage.setItem("examAnswers", JSON.stringify(answers));
+
+  // ------------------------------------
+  // STORE BASIC EXAM INFORMATION
+  // ------------------------------------
+
+  localStorage.setItem("examCourse", currentCourse.name);
+
+  localStorage.setItem("examSubmitted", "true");
+
+  // ------------------------------------
+  // GO TO SUBMISSION PAGE
+  // ------------------------------------
+
+  window.location.href = "submitted.html";
+}
+
+// ========================================
+// SHOW ERROR
+// ========================================
+
+function showError(message) {
+  questionContainer.innerHTML = `
+
+        <div class="question-card">
+
+            <p>
+                ${message}
+            </p>
+
+        </div>
+
+    `;
+
+  submitButton.disabled = true;
 }
 
 // ========================================
@@ -378,7 +516,7 @@ function redirectToLogin() {
 }
 
 // ========================================
-// START
+// START EXAMINATION
 // ========================================
 
 initializeExam();
