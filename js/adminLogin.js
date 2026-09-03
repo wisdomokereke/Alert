@@ -7,31 +7,32 @@ const adminLoginForm = document.getElementById("adminLoginForm");
 const adminMessage = document.getElementById("adminMessage");
 
 // ========================================
-// SUBMIT ADMIN LOGIN
+// CHECK THAT FORM EXISTS
+// ========================================
+
+if (!adminLoginForm) {
+  console.error("Admin login form was not found.");
+}
+
+// ========================================
+// ADMIN LOGIN
 // ========================================
 
 adminLoginForm.addEventListener("submit", async function (event) {
   event.preventDefault();
 
-  // --------------------------------
-  // GET FORM VALUES
-  // --------------------------------
+  console.log("Admin login submitted.");
 
   const email = document.getElementById("adminEmail").value.trim();
 
   const password = document.getElementById("adminPassword").value;
 
-  // --------------------------------
-  // DISPLAY LOADING MESSAGE
-  // --------------------------------
-
   adminMessage.textContent = "Signing in...";
+  adminMessage.style.color = "#667085";
 
-  adminMessage.style.color = "#2563eb";
-
-  // --------------------------------
-  // SUPABASE LOGIN
-  // --------------------------------
+  // ========================================
+  // SUPABASE AUTHENTICATION
+  // ========================================
 
   const { data, error } = await supabaseClient.auth.signInWithPassword({
     email: email,
@@ -39,97 +40,106 @@ adminLoginForm.addEventListener("submit", async function (event) {
     password: password,
   });
 
-  // --------------------------------
-  // LOGIN ERROR
-  // --------------------------------
+  // ========================================
+  // AUTHENTICATION ERROR
+  // ========================================
 
   if (error) {
-    console.error("Administrator login error:", error);
+    console.error("Admin authentication failed:", error);
 
-    adminMessage.textContent = error.message;
+    adminMessage.textContent = "Invalid administrator email or password.";
 
-    adminMessage.style.color = "#dc2626";
+    adminMessage.style.color = "red";
 
     return;
   }
 
-  // --------------------------------
-  // GET AUTHENTICATED USER
-  // --------------------------------
-
   const user = data.user;
 
   if (!user) {
-    adminMessage.textContent = "Unable to verify administrator account.";
+    adminMessage.textContent = "Unable to authenticate administrator.";
 
-    adminMessage.style.color = "#dc2626";
+    adminMessage.style.color = "red";
 
     return;
   }
 
   console.log("Authenticated user:", user.email);
 
-  // --------------------------------
-  // CHECK ADMIN TABLE
-  // --------------------------------
+  console.log("Authenticated UID:", user.id);
+
+  // ========================================
+  // CHECK ADMINS TABLE
+  // ========================================
 
   const { data: admin, error: adminError } = await supabaseClient
+
     .from("admins")
-    .select("*")
+
+    .select(
+      `
+            id,
+            full_name,
+            email,
+            auth_user_id
+        `,
+    )
+
     .eq("auth_user_id", user.id)
+
     .maybeSingle();
 
-  // --------------------------------
-  // ADMIN LOOKUP ERROR
-  // --------------------------------
+  // ========================================
+  // ADMIN RECORD ERROR
+  // ========================================
 
   if (adminError) {
-    console.error("Admin verification error:", adminError);
+    console.error("Administrator record lookup failed:", adminError);
 
-    adminMessage.textContent = "Unable to verify administrator access.";
+    adminMessage.textContent = "Unable to verify administrator account.";
 
-    adminMessage.style.color = "#dc2626";
+    adminMessage.style.color = "red";
 
     return;
   }
 
-  // --------------------------------
-  // NOT AN ADMIN
-  // --------------------------------
+  // ========================================
+  // ADMIN NOT FOUND
+  // ========================================
 
   if (!admin) {
-    // Sign out because this user
-    // is not authorized as an admin.
+    console.error("Authenticated user is not registered as an administrator.");
+
+    adminMessage.textContent =
+      "This account is not authorized as an administrator.";
+
+    adminMessage.style.color = "red";
 
     await supabaseClient.auth.signOut();
 
-    adminMessage.textContent =
-      "This account is not authorized to access the administrator dashboard.";
-
-    adminMessage.style.color = "#dc2626";
-
     return;
   }
 
-  // --------------------------------
+  // ========================================
   // ADMIN VERIFIED
-  // --------------------------------
+  // ========================================
 
-  console.log("Administrator verified:", admin.full_name);
+  console.log("Administrator verified:", admin);
 
-  adminMessage.textContent = "Login successful. Opening dashboard...";
+  // Store only non-sensitive information locally.
 
-  adminMessage.style.color = "#16a34a";
-
-  // --------------------------------
-  // REDIRECT
-  // --------------------------------
-
-  setTimeout(
-    function () {
-      window.location.href = "admin-dashboard.html";
-    },
-
-    800,
+  localStorage.setItem(
+    "admin",
+    JSON.stringify({
+      id: admin.id,
+      full_name: admin.full_name,
+      email: admin.email,
+    }),
   );
+
+  // ========================================
+  // GO TO ADMIN DASHBOARD
+  // ========================================
+
+  window.location.href = "admin-dashboard.html";
 });
