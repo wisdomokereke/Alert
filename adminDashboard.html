@@ -4,66 +4,99 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>Admin Dashboard | Ogbonnaya Onu Polytechnic</title>
+    <title>Administrator Dashboard | Ogbonnaya Onu Polytechnic</title>
 
     <link rel="stylesheet" href="css/style.css" />
   </head>
 
   <body>
     <header class="admin-header">
-      <div>
+      <div class="admin-brand">
         <h1>Ogbonnaya Onu Polytechnic</h1>
+
         <p>Online Examination Monitoring System</p>
       </div>
 
-      <div class="admin-user">
-        <span id="adminName">Administrator</span>
+      <div class="admin-user-area">
+        <div>
+          <span class="admin-label"> Administrator </span>
+
+          <strong id="adminName"> Administrator </strong>
+        </div>
+
         <button id="logoutBtn" class="logout-btn">Logout</button>
       </div>
     </header>
 
     <main class="admin-container">
+      <!-- =====================================
+         DASHBOARD HEADER
+    ====================================== -->
+
       <section class="dashboard-heading">
         <div>
+          <span class="dashboard-label"> MONITORING CONTROL CENTER </span>
+
           <h2>Administrator Dashboard</h2>
-          <p>Monitor online examination activities and student sessions.</p>
+
+          <p>
+            Monitor examination sessions, student activity, network information
+            and suspicious events.
+          </p>
         </div>
+
+        <button id="refreshBtn" class="secondary-btn">Refresh Data</button>
       </section>
 
-      <!-- SUMMARY CARDS -->
+      <!-- =====================================
+         SUMMARY CARDS
+    ====================================== -->
 
       <section class="dashboard-cards">
         <div class="dashboard-card">
-          <span class="card-title">Total Sessions</span>
-          <strong id="totalSessions">0</strong>
+          <span class="card-title"> Total Sessions </span>
+
+          <strong id="totalSessions"> 0 </strong>
+
+          <small> Examination attempts </small>
         </div>
 
         <div class="dashboard-card">
-          <span class="card-title">Active Sessions</span>
-          <strong id="activeSessions">0</strong>
+          <span class="card-title"> Active Sessions </span>
+
+          <strong id="activeSessions"> 0 </strong>
+
+          <small> Currently in progress </small>
         </div>
 
         <div class="dashboard-card">
-          <span class="card-title">Completed</span>
-          <strong id="completedSessions">0</strong>
+          <span class="card-title"> Completed </span>
+
+          <strong id="completedSessions"> 0 </strong>
+
+          <small> Submitted examinations </small>
         </div>
 
-        <div class="dashboard-card">
-          <span class="card-title">Suspicious</span>
-          <strong id="suspiciousSessions">0</strong>
+        <div class="dashboard-card suspicious-card">
+          <span class="card-title"> Suspicious </span>
+
+          <strong id="suspiciousSessions"> 0 </strong>
+
+          <small> Sessions requiring review </small>
         </div>
       </section>
 
-      <!-- SESSION MONITORING -->
+      <!-- =====================================
+         SESSION TABLE
+    ====================================== -->
 
       <section class="dashboard-section">
         <div class="section-header">
           <div>
             <h3>Examination Sessions</h3>
-            <p>Monitor student examination activity.</p>
-          </div>
 
-          <button id="refreshBtn" class="secondary-btn">Refresh</button>
+            <p>Live and completed examination sessions.</p>
+          </div>
         </div>
 
         <div class="table-wrapper">
@@ -71,17 +104,28 @@
             <thead>
               <tr>
                 <th>Student</th>
+
+                <th>Registration No.</th>
+
                 <th>Course</th>
+
+                <th>IP Address</th>
+
+                <th>Device</th>
+
                 <th>Started</th>
+
                 <th>Status</th>
-                <th>Score</th>
+
+                <th>Risk</th>
+
                 <th>Action</th>
               </tr>
             </thead>
 
             <tbody id="sessionTableBody">
               <tr>
-                <td colspan="6" class="empty-state">
+                <td colspan="9" class="empty-state">
                   Loading examination sessions...
                 </td>
               </tr>
@@ -90,30 +134,212 @@
         </div>
       </section>
 
-      <!-- SYSTEM INFORMATION -->
+      <!-- =====================================
+         SESSION DETAILS
+    ====================================== -->
+
+      <section
+        id="sessionDetails"
+        class="dashboard-section session-details-section"
+        hidden
+      >
+        <div class="section-header">
+          <div>
+            <span class="dashboard-label"> SESSION INVESTIGATION </span>
+
+            <h3>Session Details</h3>
+          </div>
+
+          <button id="closeDetailsBtn" class="secondary-btn">Close</button>
+        </div>
+
+        <!-- STUDENT INFORMATION -->
+
+        <div class="detail-group">
+          <h4>Student Information</h4>
+
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span>Name</span>
+              <strong id="detailStudentName">—</strong>
+            </div>
+
+            <div class="detail-item">
+              <span>Registration Number</span>
+              <strong id="detailRegistration">—</strong>
+            </div>
+
+            <div class="detail-item">
+              <span>Department</span>
+              <strong id="detailDepartment">—</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- EXAM INFORMATION -->
+
+        <div class="detail-group">
+          <h4>Examination Information</h4>
+
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span>Course</span>
+              <strong id="detailCourse">—</strong>
+            </div>
+
+            <div class="detail-item">
+              <span>Exam Code</span>
+              <strong id="detailExamCode">—</strong>
+            </div>
+
+            <div class="detail-item">
+              <span>Attempt</span>
+              <strong id="detailAttempt">—</strong>
+            </div>
+
+            <div class="detail-item">
+              <span>Questions</span>
+              <strong id="detailQuestions">—</strong>
+            </div>
+
+            <div class="detail-item">
+              <span>Answered</span>
+              <strong id="detailAnswered">—</strong>
+            </div>
+
+            <div class="detail-item">
+              <span>Score</span>
+              <strong id="detailScore">—</strong>
+            </div>
+
+            <div class="detail-item">
+              <span>Started</span>
+              <strong id="detailStarted">—</strong>
+            </div>
+
+            <div class="detail-item">
+              <span>Submitted</span>
+              <strong id="detailSubmitted">—</strong>
+            </div>
+
+            <div class="detail-item">
+              <span>Duration</span>
+              <strong id="detailDuration">—</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONNECTION INFORMATION -->
+
+        <div class="detail-group">
+          <h4>Connection Information</h4>
+
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span>IP Address</span>
+              <strong id="detailIp">—</strong>
+            </div>
+
+            <div class="detail-item">
+              <span>Device</span>
+              <strong id="detailDevice">—</strong>
+            </div>
+
+            <div class="detail-item">
+              <span>Network</span>
+              <strong id="detailNetwork">—</strong>
+            </div>
+
+            <div class="detail-item">
+              <span>Connection Status</span>
+              <strong id="detailConnection">—</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- MONITORING EVENTS -->
+
+        <div class="detail-group">
+          <h4>Monitoring Events</h4>
+
+          <div id="eventTimeline" class="event-timeline">Loading events...</div>
+        </div>
+
+        <!-- SUSPICIOUS ACTIVITY -->
+
+        <div class="detail-group">
+          <h4>Suspicious Activity</h4>
+
+          <div class="suspicious-panel">
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span>Status</span>
+                <strong id="detailSuspicious"> — </strong>
+              </div>
+
+              <div class="detail-item">
+                <span>Suspicion Level</span>
+                <strong id="detailRisk"> — </strong>
+              </div>
+
+              <div class="detail-item full-width">
+                <span>Reason</span>
+                <strong id="detailReason"> — </strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- WIRESHARK -->
+
+        <div class="detail-group">
+          <h4>Wireshark / Network Investigation</h4>
+
+          <div id="wiresharkArea" class="network-investigation">
+            No network observation recorded for this session.
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================
+         MONITORING INFORMATION
+    ====================================== -->
 
       <section class="dashboard-section">
         <div class="section-header">
           <div>
             <h3>Monitoring Information</h3>
-            <p>Information used during examination monitoring.</p>
+
+            <p>Examination monitoring and network investigation.</p>
           </div>
         </div>
 
         <div class="monitoring-info">
           <div>
-            <strong>Network Monitoring</strong>
+            <strong> Application Monitoring </strong>
+
             <p>
-              Wireshark traffic analysis can be used by the administrator to
-              investigate suspicious network activity during examinations.
+              The system records examination sessions, timestamps, answers and
+              session events.
             </p>
           </div>
 
           <div>
-            <strong>Session Monitoring</strong>
+            <strong> Network Monitoring </strong>
+
             <p>
-              Examination attempts recorded by the system are displayed for
-              administrative review.
+              Wireshark can be used by authorized administrators to inspect
+              network traffic and correlate observations with examination
+              session timestamps.
+            </p>
+          </div>
+
+          <div>
+            <strong> Investigation </strong>
+
+            <p>
+              Suspicious sessions can be reviewed using application events and
+              network observations.
             </p>
           </div>
         </div>
@@ -121,8 +347,11 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <script src="js/config.js"></script>
+
     <script src="js/supabase.js"></script>
+
     <script src="js/adminDashboard.js"></script>
   </body>
 </html>
