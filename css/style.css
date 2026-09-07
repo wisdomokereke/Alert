@@ -885,3 +885,270 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================
+   EXAMINATION SUBMISSION / LOGOUT PAGE
+============================================ */
+
+.submission-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top, rgba(37, 99, 235, 0.08), transparent 35%),
+    #f4f6f8;
+}
+
+.submission-container {
+  min-height: 100vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 30px 20px;
+}
+
+.submission-card {
+  width: 100%;
+  max-width: 560px;
+
+  background: #ffffff;
+
+  padding: 45px;
+
+  border-radius: 18px;
+
+  border: 1px solid #e4e7ec;
+
+  box-shadow: 0 20px 50px rgba(16, 24, 40, 0.08);
+
+  text-align: center;
+}
+
+/* Success icon */
+
+.submission-icon {
+  width: 76px;
+  height: 76px;
+
+  margin: 0 auto 25px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #ecfdf3;
+  color: #027a48;
+
+  border: 8px solid #f0fdf4;
+
+  font-size: 32px;
+  font-weight: 700;
+}
+
+/* School */
+
+.submission-school {
+  margin-bottom: 30px;
+}
+
+.submission-school .school-logo {
+  margin-bottom: 12px;
+}
+
+.submission-school h1 {
+  font-size: 22px;
+  margin-bottom: 5px;
+}
+
+.submission-school p {
+  color: #667085;
+  font-size: 14px;
+}
+
+/* Main content */
+
+.submission-content {
+  margin-bottom: 25px;
+}
+
+.submission-label {
+  display: inline-block;
+
+  margin-bottom: 10px;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  letter-spacing: 0.12em;
+
+  color: #027a48;
+}
+
+.submission-content h2 {
+  font-size: 30px;
+  margin-bottom: 12px;
+
+  color: #17202a;
+}
+
+.submission-main-text {
+  font-size: 17px;
+  font-weight: 600;
+
+  color: #344054;
+
+  margin-bottom: 10px;
+}
+
+.submission-secondary-text {
+  color: #667085;
+
+  font-size: 14px;
+
+  line-height: 1.7;
+
+  max-width: 440px;
+
+  margin: 0 auto;
+}
+
+/* Notice */
+
+.submission-notice {
+  text-align: left;
+
+  padding: 18px;
+
+  margin-bottom: 25px;
+
+  border-radius: 10px;
+
+  background: #f8fafc;
+
+  border: 1px solid #e4e7ec;
+}
+
+.submission-notice strong {
+  display: block;
+
+  margin-bottom: 7px;
+
+  font-size: 14px;
+
+  color: #344054;
+}
+
+.submission-notice p {
+  color: #667085;
+
+  font-size: 13px;
+
+  line-height: 1.6;
+}
+
+/* Logout */
+
+.submission-logout-btn {
+  width: 100%;
+
+  padding: 15px;
+
+  border: none;
+
+  border-radius: 8px;
+
+  background: #2563eb;
+
+  color: #ffffff;
+
+  font-size: 15px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.1s ease;
+}
+
+.submission-logout-btn:hover {
+  background: #1d4ed8;
+}
+
+.submission-logout-btn:active {
+  transform: translateY(1px);
+}
+
+.submission-logout-btn:disabled {
+  opacity: 0.7;
+
+  cursor: not-allowed;
+}
+
+/* Logout message */
+
+.submission-message {
+  min-height: 20px;
+
+  margin-top: 12px;
+
+  color: #dc2626;
+
+  font-size: 13px;
+}
+
+/* Footer */
+
+.submission-footer {
+  margin-top: 25px;
+
+  padding-top: 20px;
+
+  border-top: 1px solid #eaecf0;
+}
+
+.submission-footer p {
+  color: #667085;
+
+  font-size: 12px;
+
+  margin-bottom: 5px;
+}
+
+.submission-footer span {
+  color: #98a2b3;
+
+  font-size: 11px;
+}
+
+/* Mobile */
+
+@media (max-width: 600px) {
+  .submission-container {
+    padding: 20px 15px;
+  }
+
+  .submission-card {
+    padding: 35px 22px;
+
+    border-radius: 14px;
+  }
+
+  .submission-icon {
+    width: 68px;
+    height: 68px;
+
+    font-size: 28px;
+  }
+
+  .submission-content h2 {
+    font-size: 25px;
+  }
+
+  .submission-main-text {
+    font-size: 16px;
+  }
+}

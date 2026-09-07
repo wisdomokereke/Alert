@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Examination Submitted | Ogbonnaya Onu Polytechnic</title>
+
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+
+  <body class="submission-page">
+    <main class="submission-container">
+      <section class="submission-card">
+        <!-- Success Icon -->
+        <div class="submission-icon">✓</div>
+
+        <!-- School -->
+        <div class="submission-school">
+          <div class="school-logo">OOP</div>
+
+          <h1>Ogbonnaya Onu Polytechnic</h1>
+          <p>Online Examination Portal</p>
+        </div>
+
+        <!-- Message -->
+        <div class="submission-content">
+          <span class="submission-label">EXAMINATION COMPLETED</span>
+
+          <h2>Examination Submitted</h2>
+
+          <p class="submission-main-text">
+            Your examination has been successfully submitted.
+          </p>
+
+          <p class="submission-secondary-text">
+            Your responses have been recorded and sent for processing. Your
+            examination score will not be displayed on this portal.
+          </p>
+        </div>
+
+        <!-- Important Notice -->
+        <div class="submission-notice">
+          <strong>What happens next?</strong>
+
+          <p>
+            Your examination will be reviewed and processed by the examination
+            administrator. Please log out of this portal before leaving the
+            examination area.
+          </p>
+        </div>
+
+        <!-- Logout -->
+        <button id="logoutButton" class="submission-logout-btn">Logout</button>
+
+        <p id="logoutMessage" class="submission-message"></p>
+
+        <div class="submission-footer">
+          <p>Thank you for completing your examination.</p>
+          <span>Ogbonnaya Onu Polytechnic</span>
+        </div>
+      </section>
+    </main>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="js/config.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/submitted.js"></script>
+  </body>
+</html>

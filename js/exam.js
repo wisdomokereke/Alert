@@ -8,9 +8,13 @@
 // ============================================
 
 const questionContainer = document.getElementById("questionContainer");
+
 const studentName = document.getElementById("studentName");
+
 const courseName = document.getElementById("courseName");
+
 const submitButton = document.getElementById("submitExam");
+
 const timerElement = document.getElementById("timer");
 
 // ============================================
@@ -18,12 +22,17 @@ const timerElement = document.getElementById("timer");
 // ============================================
 
 let timeLeft = 30 * 60;
+
 let countdown = null;
+
 let examSubmitted = false;
+
 let examQuestions = [];
 
 let currentStudent = null;
+
 let currentCourse = null;
+
 let currentAttemptId = null;
 
 const deviceCodeKey = "exam_device_code";
@@ -56,10 +65,15 @@ async function recordSessionEvent(eventType, description, metadata = {}) {
 
   const { error } = await supabaseClient.from("session_events").insert({
     attempt_id: currentAttemptId,
+
     event_type: eventType,
+
     event_time: new Date().toISOString(),
+
     description: description,
+
     device_code: getDeviceCode(),
+
     metadata: metadata,
   });
 
@@ -81,6 +95,7 @@ async function updateActivity(connectionStatus = "connected") {
     .from("exam_attempts")
     .update({
       last_activity_at: new Date().toISOString(),
+
       connection_status: connectionStatus,
     })
     .eq("id", currentAttemptId);
@@ -88,6 +103,51 @@ async function updateActivity(connectionStatus = "connected") {
   if (error) {
     console.error("Activity update error:", error);
   }
+}
+
+// ============================================
+// CHECK IF STUDENT ALREADY COMPLETED EXAM
+// ============================================
+
+async function checkPreviousAttempt() {
+  const { data, error } = await supabaseClient
+    .from("exam_attempts")
+    .select(
+      `
+        id,
+        status,
+        submitted_at,
+        course_id
+      `,
+    )
+    .eq("student_id", currentStudent.id)
+    .eq("course_id", currentCourse.id)
+    .order("submitted_at", {
+      ascending: false,
+      nullsFirst: false,
+    })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Previous attempt check failed:", error);
+
+    return false;
+  }
+
+  if (data && data.status === "completed") {
+    console.log("Student has already completed this examination.");
+
+    localStorage.setItem("examSubmitted", "true");
+
+    localStorage.setItem("examCourse", currentCourse.name);
+
+    window.location.replace("submitted.html");
+
+    return true;
+  }
+
+  return false;
 }
 
 // ============================================
@@ -99,15 +159,25 @@ async function createExamAttempt() {
     .from("exam_attempts")
     .insert({
       student_id: currentStudent.id,
+
       course_id: currentCourse.id,
+
       exam_code: "ENG-EXAM-001",
+
       attempt_number: 1,
+
       device_code: getDeviceCode(),
+
       network_name: "School ICT Network",
+
       connection_status: "connected",
+
       suspicious: false,
+
       suspicion_level: "none",
+
       status: "in_progress",
+
       last_activity_at: new Date().toISOString(),
     })
     .select("id")
@@ -115,6 +185,7 @@ async function createExamAttempt() {
 
   if (error) {
     console.error("Unable to create exam attempt:", error);
+
     return false;
   }
 
@@ -125,6 +196,7 @@ async function createExamAttempt() {
     "Student examination session started.",
     {
       exam_code: "ENG-EXAM-001",
+
       course: currentCourse.name,
     },
   );
@@ -139,36 +211,46 @@ async function createExamAttempt() {
 async function initializeExam() {
   console.log("Initializing examination...");
 
+  // ========================================
   // CHECK LOGIN
+  // ========================================
+
   const { data: sessionData, error: sessionError } =
     await supabaseClient.auth.getSession();
 
   if (sessionError || !sessionData.session) {
     console.error("No valid student session.");
+
     redirectToLogin();
+
     return;
   }
 
   const session = sessionData.session;
 
+  // ========================================
   // LOAD STUDENT
+  // ========================================
+
   const { data: student, error: studentError } = await supabaseClient
     .from("students")
     .select(
       `
-      id,
-      full_name,
-      email,
-      registration_number,
-      department_id
-    `,
+        id,
+        full_name,
+        email,
+        registration_number,
+        department_id
+      `,
     )
     .eq("auth_user_id", session.user.id)
     .maybeSingle();
 
   if (studentError || !student) {
     console.error("Student lookup failed:", studentError);
+
     showError("Your student account could not be verified.");
+
     return;
   }
 
@@ -177,22 +259,27 @@ async function initializeExam() {
   studentName.textContent =
     student.full_name || student.registration_number || "Student";
 
+  // ========================================
   // LOAD ENGLISH COURSE
+  // ========================================
+
   const { data: course, error: courseError } = await supabaseClient
     .from("courses")
     .select(
       `
-      id,
-      name,
-      code
-    `,
+        id,
+        name,
+        code
+      `,
     )
     .eq("code", "ENG")
     .maybeSingle();
 
   if (courseError || !course) {
     console.error("Course lookup failed:", courseError);
+
     showError("English examination could not be found.");
+
     return;
   }
 
@@ -200,22 +287,42 @@ async function initializeExam() {
 
   courseName.textContent = course.name;
 
+  // ========================================
+  // PREVENT RETAKING COMPLETED EXAM
+  // ========================================
+
+  const alreadyCompleted = await checkPreviousAttempt();
+
+  if (alreadyCompleted) {
+    return;
+  }
+
+  // ========================================
   // LOAD QUESTIONS
+  // ========================================
+
   await loadExamQuestions();
 
   if (examQuestions.length !== 20) {
     return;
   }
 
-  // CREATE SESSION AFTER STUDENT + COURSE ARE READY
+  // ========================================
+  // CREATE SESSION
+  // ========================================
+
   const attemptCreated = await createExamAttempt();
 
   if (!attemptCreated) {
     showError("Unable to start your examination session. Please try again.");
+
     return;
   }
 
+  // ========================================
   // START TIMER
+  // ========================================
+
   startTimer();
 
   console.log("Examination started successfully.");
@@ -232,30 +339,34 @@ async function loadExamQuestions() {
     .from("questions")
     .select(
       `
-      id,
-      course_id,
-      question_text,
-      option_a,
-      option_b,
-      option_c,
-      option_d
-    `,
+        id,
+        course_id,
+        question_text,
+        option_a,
+        option_b,
+        option_c,
+        option_d
+      `,
     )
     .eq("course_id", currentCourse.id);
 
   if (error) {
     console.error("Question loading failed:", error);
+
     showError("Unable to load examination questions.");
+
     return;
   }
 
   if (!data || data.length === 0) {
     showError("No examination questions are available.");
+
     return;
   }
 
   if (data.length < 20) {
     showError("There are not enough examination questions available.");
+
     return;
   }
 
@@ -289,14 +400,17 @@ function displayQuestions() {
         letter: "A",
         text: question.option_a,
       },
+
       {
         letter: "B",
         text: question.option_b,
       },
+
       {
         letter: "C",
         text: question.option_c,
       },
+
       {
         letter: "D",
         text: question.option_d,
@@ -311,7 +425,9 @@ function displayQuestions() {
       const input = document.createElement("input");
 
       input.type = "radio";
+
       input.name = `question-${question.id}`;
+
       input.value = option.letter;
 
       const text = document.createElement("span");
@@ -319,11 +435,15 @@ function displayQuestions() {
       text.textContent = option.text;
 
       label.appendChild(input);
+
       label.appendChild(text);
 
       questionCard.appendChild(label);
 
+      // ==================================
       // RECORD ANSWER ACTIVITY
+      // ==================================
+
       input.addEventListener("change", async function () {
         await updateActivity("connected");
 
@@ -332,7 +452,9 @@ function displayQuestions() {
           `Answer selected for question ${index + 1}.`,
           {
             question_id: question.id,
+
             question_number: index + 1,
+
             selected_answer: option.letter,
           },
         );
@@ -387,9 +509,12 @@ function startTimer() {
 
 function updateTimer() {
   const minutes = Math.floor(timeLeft / 60);
+
   const seconds = timeLeft % 60;
 
-  timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  timerElement.textContent = `${minutes}:${seconds
+    .toString()
+    .padStart(2, "0")}`;
 }
 
 // ============================================
@@ -406,6 +531,7 @@ function collectAnswers() {
 
     answers.push({
       question_id: question.id,
+
       selected_answer: selected ? selected.value : null,
     });
   });
@@ -425,7 +551,9 @@ async function saveAnswers(answers) {
   const answerRows = answers.map(function (answer) {
     return {
       attempt_id: currentAttemptId,
+
       question_id: answer.question_id,
+
       selected_answer: answer.selected_answer,
     };
   });
@@ -434,6 +562,7 @@ async function saveAnswers(answers) {
 
   if (error) {
     console.error("Unable to save answers:", error);
+
     return false;
   }
 
@@ -444,32 +573,43 @@ async function saveAnswers(answers) {
 // COMPLETE EXAM ATTEMPT
 // ============================================
 
-async function completeExamAttempt() {
+async function completeExamAttempt(automaticSubmission = false) {
   if (!currentAttemptId) {
-    return;
+    return false;
   }
+
+  const now = new Date().toISOString();
 
   const { error } = await supabaseClient
     .from("exam_attempts")
     .update({
-      submitted_at: new Date().toISOString(),
+      submitted_at: now,
+
       status: "completed",
+
       connection_status: "completed",
-      last_activity_at: new Date().toISOString(),
+
+      last_activity_at: now,
     })
     .eq("id", currentAttemptId);
 
   if (error) {
     console.error("Unable to complete examination attempt:", error);
+
+    return false;
   }
 
   await recordSessionEvent(
     "EXAM_SUBMITTED",
+
     "Student examination was submitted.",
+
     {
-      automatic_submission: arguments[0] === true,
+      automatic_submission: automaticSubmission,
     },
   );
+
+  return true;
 }
 
 // ============================================
@@ -488,6 +628,7 @@ async function submitExam(automaticSubmission = false) {
   }
 
   submitButton.disabled = true;
+
   submitButton.textContent = "Submitting...";
 
   console.log(
@@ -497,34 +638,55 @@ async function submitExam(automaticSubmission = false) {
   );
 
   try {
+    // ========================================
+    // COLLECT ANSWERS
+    // ========================================
+
     const answers = collectAnswers();
 
-    // SAVE ANSWERS TO DATABASE
+    // ========================================
+    // SAVE ANSWERS
+    // ========================================
+
     const answersSaved = await saveAnswers(answers);
 
     if (!answersSaved) {
       throw new Error("Your answers could not be saved.");
     }
 
+    // ========================================
     // COMPLETE ATTEMPT
-    await completeExamAttempt();
+    // ========================================
 
-    // KEEP ONLY BASIC SUBMISSION INFORMATION
+    const attemptCompleted = await completeExamAttempt(automaticSubmission);
+
+    if (!attemptCompleted) {
+      throw new Error("Your examination could not be completed.");
+    }
+
+    // ========================================
+    // BASIC SUBMISSION STATE ONLY
+    // ========================================
+
     localStorage.setItem("examCourse", currentCourse.name);
 
     localStorage.setItem("examSubmitted", "true");
 
-    // REMOVE OLD TEMPORARY ANSWERS
+    // Remove temporary answers
     localStorage.removeItem("examAnswers");
 
+    // ========================================
     // GO TO SUBMISSION PAGE
-    window.location.href = "submitted.html";
+    // ========================================
+
+    window.location.replace("submitted.html");
   } catch (error) {
     console.error("Exam submission failed:", error);
 
     examSubmitted = false;
 
     submitButton.disabled = false;
+
     submitButton.textContent = "Submit Examination";
 
     alert("Your examination could not be submitted. Please try again.");
@@ -536,6 +698,14 @@ async function submitExam(automaticSubmission = false) {
 // ============================================
 
 submitButton.addEventListener("click", function () {
+  const confirmed = window.confirm(
+    "Are you sure you want to submit your examination? You will not be able to return to the examination after submission.",
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
   submitExam(false);
 });
 
@@ -551,7 +721,9 @@ document.addEventListener("visibilitychange", async function () {
   if (document.hidden) {
     await recordSessionEvent(
       "WINDOW_HIDDEN",
+
       "Student left or changed the examination tab.",
+
       {
         visibility_state: document.visibilityState,
       },
@@ -559,7 +731,9 @@ document.addEventListener("visibilitychange", async function () {
   } else {
     await recordSessionEvent(
       "WINDOW_VISIBLE",
+
       "Student returned to the examination tab.",
+
       {
         visibility_state: document.visibilityState,
       },
@@ -580,6 +754,7 @@ window.addEventListener("blur", async function () {
 
   await recordSessionEvent(
     "WINDOW_FOCUS_LOST",
+
     "Examination window lost focus.",
   );
 
@@ -593,6 +768,7 @@ window.addEventListener("focus", async function () {
 
   await recordSessionEvent(
     "WINDOW_FOCUS_RESTORED",
+
     "Examination window regained focus.",
   );
 
@@ -612,6 +788,7 @@ window.addEventListener("offline", async function () {
 
   await recordSessionEvent(
     "CONNECTION_LOST",
+
     "Student device lost internet connection.",
   );
 });
@@ -625,6 +802,7 @@ window.addEventListener("online", async function () {
 
   await recordSessionEvent(
     "CONNECTION_RESTORED",
+
     "Student device restored internet connection.",
   );
 });
@@ -647,9 +825,13 @@ setInterval(async function () {
 
 function showError(message) {
   questionContainer.innerHTML = `
+
     <div class="question-card">
+
       <p>${message}</p>
+
     </div>
+
   `;
 
   submitButton.disabled = true;
@@ -660,7 +842,7 @@ function showError(message) {
 // ============================================
 
 function redirectToLogin() {
-  window.location.href = "index.html";
+  window.location.replace("index.html");
 }
 
 // ============================================
