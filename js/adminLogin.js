@@ -1,4 +1,4 @@
-javascript;
+// javascript
 // ========================================
 // ADMIN LOGIN
 // ========================================
@@ -9,7 +9,10 @@ console.log("adminLogin.js loaded");
 const adminLoginForm = document.getElementById("adminLoginForm");
 const adminMessage = document.getElementById("adminMessage");
 
-// Check Supabase
+// ========================================
+// CHECK SUPABASE
+// ========================================
+
 if (typeof supabaseClient === "undefined") {
   console.error("supabaseClient is not available.");
 
@@ -19,7 +22,10 @@ if (typeof supabaseClient === "undefined") {
   }
 }
 
-// Check form
+// ========================================
+// CHECK FORM
+// ========================================
+
 if (!adminLoginForm) {
   console.error("Admin login form was not found.");
 } else {
@@ -28,9 +34,11 @@ if (!adminLoginForm) {
 
     console.log("Admin login submitted.");
 
-    const email = document.getElementById("adminEmail").value.trim();
+    const emailInput = document.getElementById("adminEmail");
+    const passwordInput = document.getElementById("adminPassword");
 
-    const password = document.getElementById("adminPassword").value;
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
 
     if (!email || !password) {
       adminMessage.textContent = "Please enter your email and password.";
@@ -43,8 +51,18 @@ if (!adminLoginForm) {
 
     try {
       // ========================================
+      // CHECK SUPABASE CLIENT
+      // ========================================
+
+      if (typeof supabaseClient === "undefined") {
+        throw new Error("Supabase client is not available.");
+      }
+
+      // ========================================
       // SUPABASE AUTHENTICATION
       // ========================================
+
+      console.log("Attempting Supabase login...");
 
       const { data, error } = await supabaseClient.auth.signInWithPassword({
         email: email,
@@ -55,39 +73,41 @@ if (!adminLoginForm) {
         console.error("Supabase authentication error:", error);
 
         adminMessage.textContent = error.message;
-
         adminMessage.style.color = "red";
 
         return;
       }
+
+      console.log("Supabase authentication successful.");
 
       const user = data.user;
 
       if (!user) {
         adminMessage.textContent =
           "Authentication succeeded, but no user was returned.";
-
         adminMessage.style.color = "red";
 
         return;
       }
 
-      console.log("Authenticated admin email:", user.email);
-      console.log("Authenticated admin UID:", user.id);
+      console.log("Authenticated user:", user.email);
+      console.log("Authenticated UID:", user.id);
 
       // ========================================
       // CHECK ADMINS TABLE
       // ========================================
 
+      console.log("Checking administrator record...");
+
       const { data: admin, error: adminError } = await supabaseClient
         .from("admins")
         .select(
           `
-                    id,
-                    full_name,
-                    email,
-                    auth_user_id
-                `,
+            id,
+            full_name,
+            email,
+            auth_user_id
+          `,
         )
         .eq("auth_user_id", user.id)
         .maybeSingle();
@@ -136,11 +156,14 @@ if (!adminLoginForm) {
       // OPEN DASHBOARD
       // ========================================
 
+      console.log("Redirecting to admin dashboard...");
+
       window.location.href = "adminDashboard.html";
     } catch (error) {
       console.error("Unexpected admin login error:", error);
 
       adminMessage.textContent =
+        error.message ||
         "An unexpected error occurred. Check the browser console.";
 
       adminMessage.style.color = "red";
