@@ -1,152 +1,198 @@
-// ========================================
+// ============================================
 // ONLINE EXAMINATION SYSTEM
 // Ogbonnaya Onu Polytechnic
-// ========================================
+// ============================================
 
-// ========================================
+// ============================================
 // PAGE ELEMENTS
-// ========================================
+// ============================================
 
 const questionContainer = document.getElementById("questionContainer");
-
 const studentName = document.getElementById("studentName");
-
 const courseName = document.getElementById("courseName");
-
 const submitButton = document.getElementById("submitExam");
-
 const timerElement = document.getElementById("timer");
 
-// ========================================
+// ============================================
 // EXAM VARIABLES
-// ========================================
+// ============================================
 
 let timeLeft = 30 * 60;
-
 let countdown = null;
-
 let examSubmitted = false;
-
 let examQuestions = [];
 
 let currentStudent = null;
-
 let currentCourse = null;
+let currentAttemptId = null;
 
-let currentAttempt = null;
+const deviceCodeKey = "exam_device_code";
 
-// ========================================
+// ============================================
+// DEVICE CODE
+// ============================================
+
+function getDeviceCode() {
+  let deviceCode = localStorage.getItem(deviceCodeKey);
+
+  if (!deviceCode) {
+    deviceCode =
+      "PC-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    localStorage.setItem(deviceCodeKey, deviceCode);
+  }
+
+  return deviceCode;
+}
+
+// ============================================
+// RECORD SESSION EVENT
+// ============================================
+
+async function recordSessionEvent(eventType, description, metadata = {}) {
+  if (!currentAttemptId) {
+    return;
+  }
+
+  const { error } = await supabaseClient.from("session_events").insert({
+    attempt_id: currentAttemptId,
+    event_type: eventType,
+    event_time: new Date().toISOString(),
+    description: description,
+    device_code: getDeviceCode(),
+    metadata: metadata,
+  });
+
+  if (error) {
+    console.error("Session event error:", error);
+  }
+}
+
+// ============================================
+// UPDATE ACTIVITY
+// ============================================
+
+async function updateActivity(connectionStatus = "connected") {
+  if (!currentAttemptId) {
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("exam_attempts")
+    .update({
+      last_activity_at: new Date().toISOString(),
+      connection_status: connectionStatus,
+    })
+    .eq("id", currentAttemptId);
+
+  if (error) {
+    console.error("Activity update error:", error);
+  }
+}
+
+// ============================================
+// CREATE EXAM ATTEMPT
+// ============================================
+
+async function createExamAttempt() {
+  const { data, error } = await supabaseClient
+    .from("exam_attempts")
+    .insert({
+      student_id: currentStudent.id,
+      course_id: currentCourse.id,
+      exam_code: "ENG-EXAM-001",
+      attempt_number: 1,
+      device_code: getDeviceCode(),
+      network_name: "School ICT Network",
+      connection_status: "connected",
+      suspicious: false,
+      suspicion_level: "none",
+      status: "in_progress",
+      last_activity_at: new Date().toISOString(),
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    console.error("Unable to create exam attempt:", error);
+    return false;
+  }
+
+  currentAttemptId = data.id;
+
+  await recordSessionEvent(
+    "SESSION_STARTED",
+    "Student examination session started.",
+    {
+      exam_code: "ENG-EXAM-001",
+      course: currentCourse.name,
+    },
+  );
+
+  return true;
+}
+
+// ============================================
 // INITIALIZE EXAM
-// ========================================
+// ============================================
 
 async function initializeExam() {
   console.log("Initializing examination...");
 
-  // ------------------------------------
-  // CHECK SUPABASE SESSION
-  // ------------------------------------
-
+  // CHECK LOGIN
   const { data: sessionData, error: sessionError } =
     await supabaseClient.auth.getSession();
 
-  if (sessionError) {
-    console.error("Session error:", sessionError);
-
+  if (sessionError || !sessionData.session) {
+    console.error("No valid student session.");
     redirectToLogin();
-
     return;
   }
 
   const session = sessionData.session;
 
-  // ------------------------------------
-  // CHECK AUTHENTICATION
-  // ------------------------------------
-
-  if (!session) {
-    console.error("No authenticated session found.");
-
-    redirectToLogin();
-
-    return;
-  }
-
-  console.log("Authenticated user:", session.user.email);
-
-  // ------------------------------------
   // LOAD STUDENT
-  // ------------------------------------
-
   const { data: student, error: studentError } = await supabaseClient
     .from("students")
     .select(
       `
-                id,
-                full_name,
-                email,
-                registration_number,
-                department_id
-            `,
+      id,
+      full_name,
+      email,
+      registration_number,
+      department_id
+    `,
     )
     .eq("auth_user_id", session.user.id)
     .maybeSingle();
 
-  if (studentError) {
+  if (studentError || !student) {
     console.error("Student lookup failed:", studentError);
-
-    showError("Unable to load your student information.");
-
-    return;
-  }
-
-  if (!student) {
-    console.error("No student record found.");
-
     showError("Your student account could not be verified.");
-
     return;
   }
 
   currentStudent = student;
 
-  console.log("Student loaded:", student);
-
-  // ------------------------------------
-  // DISPLAY STUDENT
-  // ------------------------------------
-
   studentName.textContent =
     student.full_name || student.registration_number || "Student";
 
-  // ------------------------------------
   // LOAD ENGLISH COURSE
-  // ------------------------------------
-
   const { data: course, error: courseError } = await supabaseClient
     .from("courses")
     .select(
       `
-                id,
-                name,
-                code
-            `,
+      id,
+      name,
+      code
+    `,
     )
     .eq("code", "ENG")
     .maybeSingle();
 
-  if (courseError) {
+  if (courseError || !course) {
     console.error("Course lookup failed:", courseError);
-
-    showError("Unable to load the examination course.");
-
-    return;
-  }
-
-  if (!course) {
-    console.error("English course was not found.");
-
     showError("English examination could not be found.");
-
     return;
   }
 
@@ -154,26 +200,30 @@ async function initializeExam() {
 
   courseName.textContent = course.name;
 
-  console.log("Course loaded:", course);
-
-  // ------------------------------------
   // LOAD QUESTIONS
-  // ------------------------------------
-
   await loadExamQuestions();
 
-  // ------------------------------------
-  // START TIMER ONLY IF QUESTIONS EXIST
-  // ------------------------------------
-
-  if (examQuestions.length === 20) {
-    startTimer();
+  if (examQuestions.length !== 20) {
+    return;
   }
+
+  // CREATE SESSION AFTER STUDENT + COURSE ARE READY
+  const attemptCreated = await createExamAttempt();
+
+  if (!attemptCreated) {
+    showError("Unable to start your examination session. Please try again.");
+    return;
+  }
+
+  // START TIMER
+  startTimer();
+
+  console.log("Examination started successfully.");
 }
 
-// ========================================
-// LOAD QUESTIONS FROM SUPABASE
-// ========================================
+// ============================================
+// LOAD QUESTIONS
+// ============================================
 
 async function loadExamQuestions() {
   console.log("Loading questions from Supabase...");
@@ -182,91 +232,49 @@ async function loadExamQuestions() {
     .from("questions")
     .select(
       `
-                id,
-                course_id,
-                question_text,
-                option_a,
-                option_b,
-                option_c,
-                option_d
-            `,
+      id,
+      course_id,
+      question_text,
+      option_a,
+      option_b,
+      option_c,
+      option_d
+    `,
     )
     .eq("course_id", currentCourse.id);
 
-  // ------------------------------------
-  // DATABASE ERROR
-  // ------------------------------------
-
   if (error) {
     console.error("Question loading failed:", error);
-
     showError("Unable to load examination questions.");
-
     return;
   }
-
-  // ------------------------------------
-  // NO QUESTIONS
-  // ------------------------------------
 
   if (!data || data.length === 0) {
-    console.error("Supabase returned no questions.");
-
     showError("No examination questions are available.");
-
     return;
   }
-
-  console.log(`Supabase returned ${data.length} English questions.`);
-
-  // ------------------------------------
-  // MAKE SURE WE HAVE 20 QUESTIONS
-  // ------------------------------------
 
   if (data.length < 20) {
-    console.error(`Only ${data.length} English questions were found.`);
-
-    showError(
-      "There are not enough English questions available for this examination.",
-    );
-
+    showError("There are not enough examination questions available.");
     return;
   }
 
-  // ------------------------------------
-  // RANDOMLY SELECT 20
-  // ------------------------------------
-
   examQuestions = shuffleArray(data).slice(0, 20);
-
-  console.log("Selected 20 examination questions:", examQuestions);
-
-  // ------------------------------------
-  // DISPLAY QUESTIONS
-  // ------------------------------------
 
   displayQuestions();
 }
 
-// ========================================
+// ============================================
 // DISPLAY QUESTIONS
-// ========================================
+// ============================================
 
 function displayQuestions() {
   questionContainer.innerHTML = "";
 
   examQuestions.forEach(function (question, index) {
-    // --------------------------------
-    // QUESTION CARD
-    // --------------------------------
-
     const questionCard = document.createElement("div");
 
     questionCard.className = "question-card";
-
-    // --------------------------------
-    // QUESTION NUMBER
-    // --------------------------------
 
     const questionTitle = document.createElement("p");
 
@@ -276,26 +284,19 @@ function displayQuestions() {
 
     questionCard.appendChild(questionTitle);
 
-    // --------------------------------
-    // OPTIONS
-    // --------------------------------
-
     const options = [
       {
         letter: "A",
         text: question.option_a,
       },
-
       {
         letter: "B",
         text: question.option_b,
       },
-
       {
         letter: "C",
         text: question.option_c,
       },
-
       {
         letter: "D",
         text: question.option_d,
@@ -310,9 +311,7 @@ function displayQuestions() {
       const input = document.createElement("input");
 
       input.type = "radio";
-
       input.name = `question-${question.id}`;
-
       input.value = option.letter;
 
       const text = document.createElement("span");
@@ -320,10 +319,24 @@ function displayQuestions() {
       text.textContent = option.text;
 
       label.appendChild(input);
-
       label.appendChild(text);
 
       questionCard.appendChild(label);
+
+      // RECORD ANSWER ACTIVITY
+      input.addEventListener("change", async function () {
+        await updateActivity("connected");
+
+        await recordSessionEvent(
+          "ANSWER_SUBMITTED",
+          `Answer selected for question ${index + 1}.`,
+          {
+            question_id: question.id,
+            question_number: index + 1,
+            selected_answer: option.letter,
+          },
+        );
+      });
     });
 
     questionContainer.appendChild(questionCard);
@@ -332,9 +345,9 @@ function displayQuestions() {
   console.log("20 questions displayed successfully.");
 }
 
-// ========================================
-// SHUFFLE QUESTIONS
-// ========================================
+// ============================================
+// SHUFFLE
+// ============================================
 
 function shuffleArray(array) {
   const shuffled = [...array];
@@ -348,9 +361,9 @@ function shuffleArray(array) {
   return shuffled;
 }
 
-// ========================================
+// ============================================
 // TIMER
-// ========================================
+// ============================================
 
 function startTimer() {
   updateTimer();
@@ -360,10 +373,6 @@ function startTimer() {
 
     updateTimer();
 
-    // ----------------------------
-    // TIME EXPIRED
-    // ----------------------------
-
     if (timeLeft <= 0) {
       clearInterval(countdown);
 
@@ -372,31 +381,20 @@ function startTimer() {
   }, 1000);
 }
 
-// ========================================
+// ============================================
 // UPDATE TIMER
-// ========================================
+// ============================================
 
 function updateTimer() {
   const minutes = Math.floor(timeLeft / 60);
-
   const seconds = timeLeft % 60;
 
-  timerElement.textContent = `${minutes}:${seconds
-    .toString()
-    .padStart(2, "0")}`;
+  timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
-// ========================================
-// SUBMIT BUTTON
-// ========================================
-
-submitButton.addEventListener("click", function () {
-  submitExam(false);
-});
-
-// ========================================
-// COLLECT STUDENT ANSWERS
-// ========================================
+// ============================================
+// COLLECT ANSWERS
+// ============================================
 
 function collectAnswers() {
   const answers = [];
@@ -408,7 +406,6 @@ function collectAnswers() {
 
     answers.push({
       question_id: question.id,
-
       selected_answer: selected ? selected.value : null,
     });
   });
@@ -416,35 +413,81 @@ function collectAnswers() {
   return answers;
 }
 
-// ========================================
+// ============================================
+// SAVE ANSWERS
+// ============================================
+
+async function saveAnswers(answers) {
+  if (!currentAttemptId) {
+    return false;
+  }
+
+  const answerRows = answers.map(function (answer) {
+    return {
+      attempt_id: currentAttemptId,
+      question_id: answer.question_id,
+      selected_answer: answer.selected_answer,
+    };
+  });
+
+  const { error } = await supabaseClient.from("answers").insert(answerRows);
+
+  if (error) {
+    console.error("Unable to save answers:", error);
+    return false;
+  }
+
+  return true;
+}
+
+// ============================================
+// COMPLETE EXAM ATTEMPT
+// ============================================
+
+async function completeExamAttempt() {
+  if (!currentAttemptId) {
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("exam_attempts")
+    .update({
+      submitted_at: new Date().toISOString(),
+      status: "completed",
+      connection_status: "completed",
+      last_activity_at: new Date().toISOString(),
+    })
+    .eq("id", currentAttemptId);
+
+  if (error) {
+    console.error("Unable to complete examination attempt:", error);
+  }
+
+  await recordSessionEvent(
+    "EXAM_SUBMITTED",
+    "Student examination was submitted.",
+    {
+      automatic_submission: arguments[0] === true,
+    },
+  );
+}
+
+// ============================================
 // SUBMIT EXAM
-// ========================================
+// ============================================
 
 async function submitExam(automaticSubmission = false) {
-  // ------------------------------------
-  // PREVENT DOUBLE SUBMISSION
-  // ------------------------------------
-
   if (examSubmitted) {
     return;
   }
 
   examSubmitted = true;
 
-  // ------------------------------------
-  // STOP TIMER
-  // ------------------------------------
-
   if (countdown) {
     clearInterval(countdown);
   }
 
-  // ------------------------------------
-  // DISABLE SUBMIT BUTTON
-  // ------------------------------------
-
   submitButton.disabled = true;
-
   submitButton.textContent = "Submitting...";
 
   console.log(
@@ -453,70 +496,175 @@ async function submitExam(automaticSubmission = false) {
       : "Submitting examination...",
   );
 
-  // ------------------------------------
-  // COLLECT ANSWERS
-  // ------------------------------------
+  try {
+    const answers = collectAnswers();
 
-  const answers = collectAnswers();
+    // SAVE ANSWERS TO DATABASE
+    const answersSaved = await saveAnswers(answers);
 
-  console.log("Collected answers:", answers);
+    if (!answersSaved) {
+      throw new Error("Your answers could not be saved.");
+    }
 
-  // ------------------------------------
-  // TEMPORARY STORAGE
-  //
-  // We do NOT store the score here.
-  // We only keep the student's responses
-  // temporarily until the secure database
-  // submission process is completed.
-  // ------------------------------------
+    // COMPLETE ATTEMPT
+    await completeExamAttempt();
 
-  localStorage.setItem("examAnswers", JSON.stringify(answers));
+    // KEEP ONLY BASIC SUBMISSION INFORMATION
+    localStorage.setItem("examCourse", currentCourse.name);
 
-  // ------------------------------------
-  // STORE BASIC EXAM INFORMATION
-  // ------------------------------------
+    localStorage.setItem("examSubmitted", "true");
 
-  localStorage.setItem("examCourse", currentCourse.name);
+    // REMOVE OLD TEMPORARY ANSWERS
+    localStorage.removeItem("examAnswers");
 
-  localStorage.setItem("examSubmitted", "true");
+    // GO TO SUBMISSION PAGE
+    window.location.href = "submitted.html";
+  } catch (error) {
+    console.error("Exam submission failed:", error);
 
-  // ------------------------------------
-  // GO TO SUBMISSION PAGE
-  // ------------------------------------
+    examSubmitted = false;
 
-  window.location.href = "submitted.html";
+    submitButton.disabled = false;
+    submitButton.textContent = "Submit Examination";
+
+    alert("Your examination could not be submitted. Please try again.");
+  }
 }
 
-// ========================================
-// SHOW ERROR
-// ========================================
+// ============================================
+// SUBMIT BUTTON
+// ============================================
+
+submitButton.addEventListener("click", function () {
+  submitExam(false);
+});
+
+// ============================================
+// TAB / WINDOW MONITORING
+// ============================================
+
+document.addEventListener("visibilitychange", async function () {
+  if (!currentAttemptId || examSubmitted) {
+    return;
+  }
+
+  if (document.hidden) {
+    await recordSessionEvent(
+      "WINDOW_HIDDEN",
+      "Student left or changed the examination tab.",
+      {
+        visibility_state: document.visibilityState,
+      },
+    );
+  } else {
+    await recordSessionEvent(
+      "WINDOW_VISIBLE",
+      "Student returned to the examination tab.",
+      {
+        visibility_state: document.visibilityState,
+      },
+    );
+  }
+
+  await updateActivity("connected");
+});
+
+// ============================================
+// WINDOW FOCUS MONITORING
+// ============================================
+
+window.addEventListener("blur", async function () {
+  if (!currentAttemptId || examSubmitted) {
+    return;
+  }
+
+  await recordSessionEvent(
+    "WINDOW_FOCUS_LOST",
+    "Examination window lost focus.",
+  );
+
+  await updateActivity("connected");
+});
+
+window.addEventListener("focus", async function () {
+  if (!currentAttemptId || examSubmitted) {
+    return;
+  }
+
+  await recordSessionEvent(
+    "WINDOW_FOCUS_RESTORED",
+    "Examination window regained focus.",
+  );
+
+  await updateActivity("connected");
+});
+
+// ============================================
+// INTERNET CONNECTION MONITORING
+// ============================================
+
+window.addEventListener("offline", async function () {
+  if (!currentAttemptId || examSubmitted) {
+    return;
+  }
+
+  await updateActivity("disconnected");
+
+  await recordSessionEvent(
+    "CONNECTION_LOST",
+    "Student device lost internet connection.",
+  );
+});
+
+window.addEventListener("online", async function () {
+  if (!currentAttemptId || examSubmitted) {
+    return;
+  }
+
+  await updateActivity("connected");
+
+  await recordSessionEvent(
+    "CONNECTION_RESTORED",
+    "Student device restored internet connection.",
+  );
+});
+
+// ============================================
+// PERIODIC ACTIVITY UPDATE
+// ============================================
+
+setInterval(async function () {
+  if (!currentAttemptId || examSubmitted) {
+    return;
+  }
+
+  await updateActivity(navigator.onLine ? "connected" : "disconnected");
+}, 30000);
+
+// ============================================
+// ERROR DISPLAY
+// ============================================
 
 function showError(message) {
   questionContainer.innerHTML = `
-
-        <div class="question-card">
-
-            <p>
-                ${message}
-            </p>
-
-        </div>
-
-    `;
+    <div class="question-card">
+      <p>${message}</p>
+    </div>
+  `;
 
   submitButton.disabled = true;
 }
 
-// ========================================
+// ============================================
 // REDIRECT TO LOGIN
-// ========================================
+// ============================================
 
 function redirectToLogin() {
   window.location.href = "index.html";
 }
 
-// ========================================
-// START EXAMINATION
-// ========================================
+// ============================================
+// START EXAM
+// ============================================
 
 initializeExam();
