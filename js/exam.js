@@ -8,13 +8,9 @@
 // ============================================
 
 const questionContainer = document.getElementById("questionContainer");
-
 const studentName = document.getElementById("studentName");
-
 const courseName = document.getElementById("courseName");
-
 const submitButton = document.getElementById("submitExam");
-
 const timerElement = document.getElementById("timer");
 
 // ============================================
@@ -22,17 +18,11 @@ const timerElement = document.getElementById("timer");
 // ============================================
 
 let timeLeft = 30 * 60;
-
 let countdown = null;
-
 let examSubmitted = false;
-
 let examQuestions = [];
-
 let currentStudent = null;
-
 let currentCourse = null;
-
 let currentAttemptId = null;
 
 const deviceCodeKey = "exam_device_code";
@@ -65,15 +55,10 @@ async function recordSessionEvent(eventType, description, metadata = {}) {
 
   const { error } = await supabaseClient.from("session_events").insert({
     attempt_id: currentAttemptId,
-
     event_type: eventType,
-
     event_time: new Date().toISOString(),
-
     description: description,
-
     device_code: getDeviceCode(),
-
     metadata: metadata,
   });
 
@@ -95,7 +80,6 @@ async function updateActivity(connectionStatus = "connected") {
     .from("exam_attempts")
     .update({
       last_activity_at: new Date().toISOString(),
-
       connection_status: connectionStatus,
     })
     .eq("id", currentAttemptId);
@@ -110,21 +94,23 @@ async function updateActivity(connectionStatus = "connected") {
 // ============================================
 
 async function checkPreviousAttempt() {
+  console.log("Checking previous examination attempt...");
+
   const { data, error } = await supabaseClient
     .from("exam_attempts")
     .select(
       `
-        id,
-        status,
-        submitted_at,
-        course_id
-      `,
+      id,
+      status,
+      submitted_at,
+      course_id
+    `,
     )
     .eq("student_id", currentStudent.id)
     .eq("course_id", currentCourse.id)
+    .eq("status", "completed")
     .order("submitted_at", {
       ascending: false,
-      nullsFirst: false,
     })
     .limit(1)
     .maybeSingle();
@@ -132,20 +118,25 @@ async function checkPreviousAttempt() {
   if (error) {
     console.error("Previous attempt check failed:", error);
 
-    return false;
+    showError(
+      "We could not verify your previous examination attempt. Please contact the administrator.",
+    );
+
+    return true;
   }
 
-  if (data && data.status === "completed") {
+  if (data) {
     console.log("Student has already completed this examination.");
 
     localStorage.setItem("examSubmitted", "true");
-
     localStorage.setItem("examCourse", currentCourse.name);
 
     window.location.replace("submitted.html");
 
     return true;
   }
+
+  console.log("No completed attempt found.");
 
   return false;
 }
@@ -155,48 +146,70 @@ async function checkPreviousAttempt() {
 // ============================================
 
 async function createExamAttempt() {
+  console.log("Creating examination attempt...");
+
+  const attemptData = {
+    student_id: currentStudent.id,
+    course_id: currentCourse.id,
+    exam_code: "ENG-EXAM-001",
+    attempt_number: 1,
+    device_code: getDeviceCode(),
+    network_name: "School ICT Network",
+    connection_status: "connected",
+    suspicious: false,
+    suspicion_level: "none",
+    status: "in_progress",
+    last_activity_at: new Date().toISOString(),
+  };
+
+  console.log("Attempt data:", attemptData);
+
   const { data, error } = await supabaseClient
     .from("exam_attempts")
-    .insert({
-      student_id: currentStudent.id,
-
-      course_id: currentCourse.id,
-
-      exam_code: "ENG-EXAM-001",
-
-      attempt_number: 1,
-
-      device_code: getDeviceCode(),
-
-      network_name: "School ICT Network",
-
-      connection_status: "connected",
-
-      suspicious: false,
-
-      suspicion_level: "none",
-
-      status: "in_progress",
-
-      last_activity_at: new Date().toISOString(),
-    })
+    .insert(attemptData)
     .select("id")
     .single();
 
   if (error) {
-    console.error("Unable to create exam attempt:", error);
+    console.error("====================================");
+    console.error("EXAM ATTEMPT CREATION FAILED");
+    console.error("Code:", error.code);
+    console.error("Message:", error.message);
+    console.error("Details:", error.details);
+    console.error("Hint:", error.hint);
+    console.error("====================================");
+
+    showError(
+      "Unable to start your examination session. Please contact the administrator.",
+    );
+
+    return false;
+  }
+
+  if (!data || !data.id) {
+    console.error("Exam attempt was created but no attempt ID was returned.");
+
+    showError(
+      "Your examination session could not be initialized. Please contact the administrator.",
+    );
 
     return false;
   }
 
   currentAttemptId = data.id;
 
+  console.log("Exam attempt created successfully.");
+  console.log("Attempt ID:", currentAttemptId);
+
+  // ========================================
+  // RECORD SESSION START
+  // ========================================
+
   await recordSessionEvent(
     "SESSION_STARTED",
     "Student examination session started.",
     {
       exam_code: "ENG-EXAM-001",
-
       course: currentCourse.name,
     },
   );
@@ -228,6 +241,8 @@ async function initializeExam() {
 
   const session = sessionData.session;
 
+  console.log("Student session found.");
+
   // ========================================
   // LOAD STUDENT
   // ========================================
@@ -236,12 +251,12 @@ async function initializeExam() {
     .from("students")
     .select(
       `
-        id,
-        full_name,
-        email,
-        registration_number,
-        department_id
-      `,
+      id,
+      full_name,
+      email,
+      registration_number,
+      department_id
+    `,
     )
     .eq("auth_user_id", session.user.id)
     .maybeSingle();
@@ -256,6 +271,8 @@ async function initializeExam() {
 
   currentStudent = student;
 
+  console.log("Student verified:", student.full_name);
+
   studentName.textContent =
     student.full_name || student.registration_number || "Student";
 
@@ -267,10 +284,10 @@ async function initializeExam() {
     .from("courses")
     .select(
       `
-        id,
-        name,
-        code
-      `,
+      id,
+      name,
+      code
+    `,
     )
     .eq("code", "ENG")
     .maybeSingle();
@@ -284,6 +301,8 @@ async function initializeExam() {
   }
 
   currentCourse = course;
+
+  console.log("Course loaded:", course.name);
 
   courseName.textContent = course.name;
 
@@ -308,14 +327,12 @@ async function initializeExam() {
   }
 
   // ========================================
-  // CREATE SESSION
+  // CREATE EXAM SESSION
   // ========================================
 
   const attemptCreated = await createExamAttempt();
 
   if (!attemptCreated) {
-    showError("Unable to start your examination session. Please try again.");
-
     return;
   }
 
@@ -325,7 +342,9 @@ async function initializeExam() {
 
   startTimer();
 
-  console.log("Examination started successfully.");
+  console.log("====================================");
+  console.log("EXAMINATION STARTED SUCCESSFULLY");
+  console.log("====================================");
 }
 
 // ============================================
@@ -339,14 +358,14 @@ async function loadExamQuestions() {
     .from("questions")
     .select(
       `
-        id,
-        course_id,
-        question_text,
-        option_a,
-        option_b,
-        option_c,
-        option_d
-      `,
+      id,
+      course_id,
+      question_text,
+      option_a,
+      option_b,
+      option_c,
+      option_d
+    `,
     )
     .eq("course_id", currentCourse.id);
 
@@ -400,17 +419,14 @@ function displayQuestions() {
         letter: "A",
         text: question.option_a,
       },
-
       {
         letter: "B",
         text: question.option_b,
       },
-
       {
         letter: "C",
         text: question.option_c,
       },
-
       {
         letter: "D",
         text: question.option_d,
@@ -425,9 +441,7 @@ function displayQuestions() {
       const input = document.createElement("input");
 
       input.type = "radio";
-
       input.name = `question-${question.id}`;
-
       input.value = option.letter;
 
       const text = document.createElement("span");
@@ -435,7 +449,6 @@ function displayQuestions() {
       text.textContent = option.text;
 
       label.appendChild(input);
-
       label.appendChild(text);
 
       questionCard.appendChild(label);
@@ -452,9 +465,7 @@ function displayQuestions() {
           `Answer selected for question ${index + 1}.`,
           {
             question_id: question.id,
-
             question_number: index + 1,
-
             selected_answer: option.letter,
           },
         );
@@ -512,9 +523,7 @@ function updateTimer() {
 
   const seconds = timeLeft % 60;
 
-  timerElement.textContent = `${minutes}:${seconds
-    .toString()
-    .padStart(2, "0")}`;
+  timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
 // ============================================
@@ -531,7 +540,6 @@ function collectAnswers() {
 
     answers.push({
       question_id: question.id,
-
       selected_answer: selected ? selected.value : null,
     });
   });
@@ -545,15 +553,15 @@ function collectAnswers() {
 
 async function saveAnswers(answers) {
   if (!currentAttemptId) {
+    console.error("Cannot save answers: no attempt ID.");
+
     return false;
   }
 
   const answerRows = answers.map(function (answer) {
     return {
       attempt_id: currentAttemptId,
-
       question_id: answer.question_id,
-
       selected_answer: answer.selected_answer,
     };
   });
@@ -566,6 +574,8 @@ async function saveAnswers(answers) {
     return false;
   }
 
+  console.log("Answers saved successfully.");
+
   return true;
 }
 
@@ -575,6 +585,8 @@ async function saveAnswers(answers) {
 
 async function completeExamAttempt(automaticSubmission = false) {
   if (!currentAttemptId) {
+    console.error("Cannot complete exam: no attempt ID.");
+
     return false;
   }
 
@@ -584,11 +596,8 @@ async function completeExamAttempt(automaticSubmission = false) {
     .from("exam_attempts")
     .update({
       submitted_at: now,
-
       status: "completed",
-
       connection_status: "completed",
-
       last_activity_at: now,
     })
     .eq("id", currentAttemptId);
@@ -601,13 +610,13 @@ async function completeExamAttempt(automaticSubmission = false) {
 
   await recordSessionEvent(
     "EXAM_SUBMITTED",
-
     "Student examination was submitted.",
-
     {
       automatic_submission: automaticSubmission,
     },
   );
+
+  console.log("Exam attempt marked as completed.");
 
   return true;
 }
@@ -628,7 +637,6 @@ async function submitExam(automaticSubmission = false) {
   }
 
   submitButton.disabled = true;
-
   submitButton.textContent = "Submitting...";
 
   console.log(
@@ -665,7 +673,7 @@ async function submitExam(automaticSubmission = false) {
     }
 
     // ========================================
-    // BASIC SUBMISSION STATE ONLY
+    // SAVE BASIC SUBMISSION STATE
     // ========================================
 
     localStorage.setItem("examCourse", currentCourse.name);
@@ -721,9 +729,7 @@ document.addEventListener("visibilitychange", async function () {
   if (document.hidden) {
     await recordSessionEvent(
       "WINDOW_HIDDEN",
-
       "Student left or changed the examination tab.",
-
       {
         visibility_state: document.visibilityState,
       },
@@ -731,9 +737,7 @@ document.addEventListener("visibilitychange", async function () {
   } else {
     await recordSessionEvent(
       "WINDOW_VISIBLE",
-
       "Student returned to the examination tab.",
-
       {
         visibility_state: document.visibilityState,
       },
@@ -754,7 +758,6 @@ window.addEventListener("blur", async function () {
 
   await recordSessionEvent(
     "WINDOW_FOCUS_LOST",
-
     "Examination window lost focus.",
   );
 
@@ -768,7 +771,6 @@ window.addEventListener("focus", async function () {
 
   await recordSessionEvent(
     "WINDOW_FOCUS_RESTORED",
-
     "Examination window regained focus.",
   );
 
@@ -788,7 +790,6 @@ window.addEventListener("offline", async function () {
 
   await recordSessionEvent(
     "CONNECTION_LOST",
-
     "Student device lost internet connection.",
   );
 });
@@ -802,7 +803,6 @@ window.addEventListener("online", async function () {
 
   await recordSessionEvent(
     "CONNECTION_RESTORED",
-
     "Student device restored internet connection.",
   );
 });
@@ -825,13 +825,9 @@ setInterval(async function () {
 
 function showError(message) {
   questionContainer.innerHTML = `
-
     <div class="question-card">
-
       <p>${message}</p>
-
     </div>
-
   `;
 
   submitButton.disabled = true;
