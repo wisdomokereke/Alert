@@ -3,6 +3,8 @@
 // Ogbonnaya Onu Polytechnic
 // ============================================
 
+console.log("exam.js loaded");
+
 // ============================================
 // PAGE ELEMENTS
 // ============================================
@@ -24,6 +26,7 @@ let examQuestions = [];
 let currentStudent = null;
 let currentCourse = null;
 let currentAttemptId = null;
+let currentIpAddress = null;
 
 const deviceCodeKey = "exam_device_code";
 
@@ -42,6 +45,39 @@ function getDeviceCode() {
   }
 
   return deviceCode;
+}
+
+// ============================================
+// GET PUBLIC IP ADDRESS
+// ============================================
+
+async function getPublicIpAddress() {
+  console.log("Detecting public IP address...");
+
+  try {
+    const response = await fetch("https://api.ipify.org?format=json", {
+      method: "GET",
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      throw new Error(`IP service returned HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data || !data.ip) {
+      throw new Error("No IP address was returned.");
+    }
+
+    console.log("Public IP detected:", data.ip);
+
+    return data.ip;
+  } catch (error) {
+    console.error("Unable to detect public IP address:", error);
+
+    return null;
+  }
 }
 
 // ============================================
@@ -148,6 +184,24 @@ async function checkPreviousAttempt() {
 async function createExamAttempt() {
   console.log("Creating examination attempt...");
 
+  // ========================================
+  // GET STUDENT PUBLIC IP
+  // ========================================
+
+  currentIpAddress = await getPublicIpAddress();
+
+  if (currentIpAddress) {
+    console.log("IP address that will be stored:", currentIpAddress);
+  } else {
+    console.warn(
+      "Public IP could not be detected. The attempt will be created with a null IP address.",
+    );
+  }
+
+  // ========================================
+  // BUILD ATTEMPT DATA
+  // ========================================
+
   const attemptData = {
     student_id: currentStudent.id,
     course_id: currentCourse.id,
@@ -155,6 +209,7 @@ async function createExamAttempt() {
     attempt_number: 1,
     device_code: getDeviceCode(),
     network_name: "School ICT Network",
+    ip_address: currentIpAddress,
     connection_status: "connected",
     suspicious: false,
     suspicion_level: "none",
@@ -163,6 +218,10 @@ async function createExamAttempt() {
   };
 
   console.log("Attempt data:", attemptData);
+
+  // ========================================
+  // INSERT EXAM ATTEMPT
+  // ========================================
 
   const { data, error } = await supabaseClient
     .from("exam_attempts")
@@ -200,6 +259,7 @@ async function createExamAttempt() {
 
   console.log("Exam attempt created successfully.");
   console.log("Attempt ID:", currentAttemptId);
+  console.log("Stored IP address:", currentIpAddress || "Not detected");
 
   // ========================================
   // RECORD SESSION START
@@ -211,6 +271,8 @@ async function createExamAttempt() {
     {
       exam_code: "ENG-EXAM-001",
       course: currentCourse.name,
+      ip_address: currentIpAddress,
+      device_code: getDeviceCode(),
     },
   );
 
@@ -523,7 +585,9 @@ function updateTimer() {
 
   const seconds = timeLeft % 60;
 
-  timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  timerElement.textContent = `${minutes}:${seconds
+    .toString()
+    .padStart(2, "0")}`;
 }
 
 // ============================================
@@ -613,6 +677,7 @@ async function completeExamAttempt(automaticSubmission = false) {
     "Student examination was submitted.",
     {
       automatic_submission: automaticSubmission,
+      ip_address: currentIpAddress,
     },
   );
 
